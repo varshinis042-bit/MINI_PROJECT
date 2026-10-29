@@ -1,0 +1,16 @@
+node_modules/
+venv/
+.venv/
+__pycache__/
+*.pyc
+.env
+.env.*
+!.env.example
+
+frontend-git-backup/
+backend-git-backup/
+
+
+frontend-git-backup/
+backend-git-backup/
+

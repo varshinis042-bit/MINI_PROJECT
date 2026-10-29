@@ -1,0 +1,307 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Default: Clean, modern Light Theme */
+  body {
+    @apply text-slate-800 font-sans antialiased;
+    background-color: #f8fafc;
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(204, 251, 241, 0.75) 0px, transparent 55%),
+      radial-gradient(at 100% 100%, rgba(240, 253, 250, 0.9) 0px, transparent 55%),
+      radial-gradient(at 50% 20%, rgba(254, 226, 226, 0.35) 0px, transparent 65%),
+      radial-gradient(at 80% 10%, rgba(224, 242, 254, 0.55) 0px, transparent 50%);
+    background-attachment: fixed;
+    color: #0f172a;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  /* Dark mode override */
+  html.dark body {
+    @apply text-slate-100 font-sans;
+    background-color: #0f3c44;
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(20, 184, 166, 0.28) 0px, transparent 55%),
+      radial-gradient(at 100% 100%, rgba(13, 148, 136, 0.22) 0px, transparent 55%),
+      radial-gradient(at 50% 25%, rgba(45, 212, 191, 0.16) 0px, transparent 70%),
+      radial-gradient(at 80% 10%, rgba(20, 184, 166, 0.18) 0px, transparent 50%);
+    background-attachment: fixed;
+    color: #f8fafc;
+  }
+}
+
+/* ========================================================
+   GLASSMORPHISM CARDS (LIGHT & DARK DUAL PALETTE)
+   ======================================================== */
+.glass-card {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+html.dark .glass-card {
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.glass-card-hover {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.glass-card-hover:hover {
+  transform: translateY(-2px);
+  border-color: rgba(13, 148, 136, 0.35);
+  box-shadow: 0 12px 28px -4px rgba(15, 23, 42, 0.09), 0 4px 10px -2px rgba(15, 23, 42, 0.04);
+}
+
+html.dark .glass-card-hover:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.45);
+}
+
+/* ========================================================
+   LIGHT THEME ADAPTIVE RULES (Active when html has .light or default)
+   ======================================================== */
+html.light {
+  color-scheme: light;
+}
+
+/* Header & Sidebar in Light Mode */
+html.light header.glass-card {
+  background: rgba(255, 255, 255, 0.92) !important;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.9) !important;
+}
+
+html.light aside.glass-card {
+  background: rgba(255, 255, 255, 0.88) !important;
+  border-right: 1px solid rgba(226, 232, 240, 0.9) !important;
+}
+
+/* Headings Typography */
+html.light h1.text-white,
+html.light h2.text-white,
+html.light h3.text-white,
+html.light h4.text-white,
+html.light .font-display.text-white,
+html.light .font-bold.text-white {
+  color: #0f172a !important;
+}
+
+/* Slate Text Scales in Light Mode */
+html.light .text-slate-100 {
+  color: #0f172a !important;
+}
+
+html.light .text-slate-200 {
+  color: #1e293b !important;
+}
+
+html.light .text-slate-300 {
+  color: #334155 !important;
+}
+
+html.light .text-slate-400 {
+  color: #475569 !important;
+}
+
+html.light .text-slate-500 {
+  color: #64748b !important;
+}
+
+/* Clinical & Accent Colors (Tuned for Crisp Light Contrast) */
+html.light .text-teal-400 {
+  color: #0f766e !important; /* teal-700 */
+}
+
+html.light .text-teal-300 {
+  color: #0d9488 !important; /* teal-600 */
+}
+
+html.light .text-emerald-400 {
+  color: #047857 !important; /* emerald-700 */
+}
+
+html.light .text-emerald-300 {
+  color: #059669 !important; /* emerald-600 */
+}
+
+html.light .text-rose-400 {
+  color: #be123c !important; /* rose-700 */
+}
+
+html.light .text-rose-300 {
+  color: #e11d48 !important; /* rose-600 */
+}
+
+html.light .text-rose-200 {
+  color: #9f1239 !important; /* rose-800 */
+}
+
+html.light .text-amber-400 {
+  color: #b45309 !important; /* amber-700 */
+}
+
+html.light .text-amber-300 {
+  color: #d97706 !important; /* amber-600 */
+}
+
+html.light .text-amber-200 {
+  color: #92400e !important; /* amber-800 */
+}
+
+html.light .text-indigo-400 {
+  color: #4338ca !important; /* indigo-700 */
+}
+
+/* Background Containers & Section Cards */
+html.light .bg-slate-950,
+html.light .bg-slate-900 {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.light .bg-slate-950\/80,
+html.light .bg-slate-950\/70,
+html.light .bg-slate-950\/60,
+html.light .bg-slate-950\/50,
+html.light .bg-slate-900\/90,
+html.light .bg-slate-900\/80,
+html.light .bg-slate-900\/70,
+html.light .bg-slate-900\/60 {
+  background-color: rgba(248, 250, 252, 0.95) !important;
+  border-color: rgba(226, 232, 240, 0.95) !important;
+}
+
+html.light .bg-slate-800,
+html.light .bg-slate-800\/80,
+html.light .bg-slate-800\/60,
+html.light .bg-slate-800\/50 {
+  background-color: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Hover States */
+html.light .hover\:bg-slate-800:hover,
+html.light .hover\:bg-slate-800\/60:hover,
+html.light .hover\:bg-slate-800\/50:hover {
+  background-color: #e2e8f0 !important;
+}
+
+html.light .hover\:bg-slate-900:hover {
+  background-color: #f1f5f9 !important;
+}
+
+/* Badges & Alert Pills */
+html.light .bg-teal-950 {
+  background-color: #ccfbf1 !important;
+  color: #0f766e !important;
+  border-color: #99f6e4 !important;
+}
+
+html.light .bg-rose-950,
+html.light .bg-rose-950\/40,
+html.light .bg-rose-900\/80 {
+  background-color: #ffe4e6 !important;
+  color: #be123c !important;
+  border-color: #fecdd3 !important;
+}
+
+html.light .bg-amber-950,
+html.light .bg-amber-950\/40,
+html.light .bg-amber-900\/80 {
+  background-color: #fef3c7 !important;
+  color: #b45309 !important;
+  border-color: #fde68a !important;
+}
+
+html.light .bg-emerald-950,
+html.light .bg-emerald-950\/40 {
+  background-color: #d1fae5 !important;
+  color: #047857 !important;
+  border-color: #a7f3d0 !important;
+}
+
+/* Borders */
+html.light .border-slate-800,
+html.light .border-slate-800\/80,
+html.light .border-slate-700,
+html.light .border-slate-700\/80,
+html.light .border-slate-700\/60 {
+  border-color: #e2e8f0 !important;
+}
+
+html.light .border-teal-900\/40 {
+  border-color: #ccfbf1 !important;
+}
+
+/* Form Controls (Inputs, Selects, Textareas) */
+html.light input,
+html.light select,
+html.light textarea {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light input::placeholder,
+html.light textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+html.light input:focus,
+html.light select:focus,
+html.light textarea:focus {
+  border-color: #0d9488 !important;
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15) !important;
+}
+
+/* Preserve White Text on Solid Action Buttons & Gradient Badges */
+html.light button.bg-teal-600,
+html.light a.bg-teal-600,
+html.light button.bg-teal-500,
+html.light a.bg-teal-500,
+html.light button.bg-rose-600,
+html.light a.bg-rose-600,
+html.light button.bg-emerald-600,
+html.light a.bg-emerald-600,
+html.light .bg-gradient-to-r,
+html.light .bg-gradient-to-tr,
+html.light .bg-teal-600 *,
+html.light .bg-rose-600 *,
+html.light .bg-emerald-600 * {
+  color: #ffffff !important;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+html.light ::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+html.light ::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+html.light ::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+html.dark ::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.6);
+}
+html.dark ::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.4);
+  border-radius: 4px;
+}
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.6);
+}
