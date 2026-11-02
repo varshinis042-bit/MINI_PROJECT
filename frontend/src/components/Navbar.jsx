@@ -28,7 +28,9 @@ import {
   CalendarCheck,
   ShieldCheck,
   Sun,
-  Moon
+  Moon,
+  Stethoscope,
+  History
 } from "lucide-react"
 import api from "../services/api"
 import { useAuth } from "../context/AuthContext"
@@ -66,6 +68,8 @@ export const Navbar = () => {
   const mobileLinks = [
     { name: t("nav_dashboard"), path: "/dashboard", icon: LayoutDashboard },
     { name: t("nav_profile"), path: "/profile", icon: User },
+    { name: t("nav_symptom_checker", "AI Symptom Checker"), path: "/symptom-checker", icon: Stethoscope },
+    { name: t("nav_symptom_history", "Symptom History"), path: "/symptom-history", icon: History },
     { name: t("nav_risk_assessment"), path: "/risk-assessment", icon: Activity },
     { name: t("nav_ecg"), path: "/ecg", icon: Activity },
     { name: t("nav_manage_risk", "Manage & Monitor Risk"), path: "/manage-risk", icon: ShieldCheck },
@@ -118,6 +122,11 @@ export const Navbar = () => {
           <span className="font-medium text-slate-300">
             {lang === "ta" ? "உங்கள் இதய நல தோழன்" : "Your Heart Health Companion"}
           </span>
+          <span className="text-slate-600">|</span>
+          <Link to="/symptom-checker" className="text-teal-400 hover:text-teal-300 font-semibold flex items-center gap-1 transition-colors">
+            <Stethoscope className="w-3.5 h-3.5" />
+            <span>{lang === "ta" ? "அறிகுறி AI" : "Triage AI"}</span>
+          </Link>
           <span className="text-slate-600">|</span>
           <Link to="/ecg" className="text-teal-400 hover:text-teal-300 font-semibold flex items-center gap-1 transition-colors">
             <Activity className="w-3.5 h-3.5" />

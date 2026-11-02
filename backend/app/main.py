@@ -22,6 +22,7 @@ from app.routes.predict import router as predict_router
 from app.routes.profile import router as profile_router
 from app.routes.progress import router as progress_router
 from app.routes.reminders import router as reminders_router
+from app.routes.symptoms import router as symptoms_router
 from app.routes.whatif import router as whatif_router
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
@@ -79,6 +80,7 @@ app.include_router(exercise_router, prefix=api_prefix)
 app.include_router(whatif_router, prefix=api_prefix)
 app.include_router(progress_router, prefix=api_prefix)
 app.include_router(emergency_router, prefix=api_prefix)
+app.include_router(symptoms_router, prefix=api_prefix)
 app.include_router(model_router, prefix=api_prefix)
 app.include_router(reminders_router, prefix=api_prefix)
 app.include_router(ecg_router, prefix=api_prefix)

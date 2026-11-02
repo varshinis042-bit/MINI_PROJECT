@@ -30,9 +30,9 @@ async def get_personalized_care_plan(
 @router.get("/health-plan/today", response_model=DailyHealthPlanResponse)
 async def get_today_health_plan(
     timezone: Optional[str] = Query("UTC"),
-    current_user: Optional[dict] = Depends(get_optional_user)
+    current_user: dict = Depends(get_current_user)
 ):
-    user_id = str(current_user["_id"]) if current_user else "guest"
+    user_id = str(current_user["_id"])
     return await health_plan_service.get_or_create_daily_plan(
         user_id=user_id,
         client_timezone=timezone or "UTC",

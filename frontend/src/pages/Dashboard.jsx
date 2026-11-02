@@ -26,7 +26,8 @@ import {
   BarChart3,
   Info,
   ChefHat,
-  ShieldCheck
+  ShieldCheck,
+  Stethoscope
 } from "lucide-react"
 import api from "../services/api"
 import { useAuth } from "../context/AuthContext"
@@ -172,6 +173,14 @@ export const Dashboard = () => {
             <HelpCircle className="w-4 h-4 text-teal-400" />
             <span>{lang === "ta" ? "பயன்படுத்துவது எப்படி?" : "How to use this app?"}</span>
           </button>
+
+          <Link
+            to="/symptom-checker"
+            className="px-4 py-2 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white text-xs font-bold transition-all shadow-md shadow-teal-950/40 flex items-center gap-1.5"
+          >
+            <Stethoscope className="w-4 h-4" />
+            <span>{lang === "ta" ? "AI அறிகுறி பரிசோதனை" : "AI Symptom Checker"}</span>
+          </Link>
 
           <Link
             to="/risk-assessment"

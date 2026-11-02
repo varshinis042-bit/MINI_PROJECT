@@ -26,6 +26,8 @@ import { EcgMonitor } from "./pages/EcgMonitor"
 import { ModelPerformance } from "./pages/ModelPerformance"
 import { About } from "./pages/About"
 import { RiskMaintenance } from "./pages/RiskMaintenance"
+import { SymptomChecker } from "./pages/SymptomChecker"
+import { SymptomHistory } from "./pages/SymptomHistory"
 
 export function App() {
   return (
@@ -62,6 +64,8 @@ export function App() {
               <Route path="/what-if" element={<WhatIfSimulator />} />
               <Route path="/reminders" element={<Reminders />} />
               <Route path="/progress" element={<ProgressMonitoring />} />
+              <Route path="/symptom-checker" element={<SymptomChecker />} />
+              <Route path="/symptom-history" element={<SymptomHistory />} />
               <Route path="/emergency" element={<EmergencyModule />} />
               <Route path="/ecg" element={<EcgMonitor />} />
               <Route path="/model-performance" element={<ModelPerformance />} />
