@@ -146,6 +146,10 @@ class DailyHealthPlanService:
         if emergency_record and emergency_record.get("is_emergency"):
             emergency_symptoms_present = True
 
+        recent_symptom = await db.find_one("symptom_reports", {"user_id": user_id}, sort_field="created_at", descending=True)
+        if recent_symptom and recent_symptom.get("urgency_tier") in ["LEVEL_1_EMERGENCY", "LEVEL_2_URGENT"]:
+            emergency_symptoms_present = True
+
         exercise_allowed = not is_severe_hypertension and not emergency_symptoms_present
 
         # 7. Generate Daily Food Plan with Indian Foods (5 Meal Slots)

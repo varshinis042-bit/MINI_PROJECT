@@ -1,4 +1,4 @@
-﻿"""Routes for Smart Ingredient-Based Meal Suggestions."""
+"""Routes for Smart Ingredient-Based Meal Suggestions."""
 from typing import List
 from fastapi import APIRouter, Depends
 from app.schemas.meal_suggest import (
@@ -13,7 +13,7 @@ router = APIRouter(prefix="/meals", tags=["Smart Meals"])
 RECIPES_DATABASE = [
     {
         "name": "Egg Tomato Rice / Bhurji Rice",
-        "tamil_name": "à®®à¯à®Ÿà¯à®Ÿà¯ˆ à®¤à®•à¯à®•à®¾à®³à®¿ à®šà®¾à®¤à®®à¯",
+        "tamil_name": "முட்டை தக்காளி சாதம்",
         "ingredients": ["egg", "eggs", "tomato", "rice", "onion", "garlic", "curry leaves", "pepper"],
         "meal_type": "Lunch / Dinner",
         "calories": 360,
@@ -37,7 +37,7 @@ RECIPES_DATABASE = [
     },
     {
         "name": "Ragi Porridge / Malt",
-        "tamil_name": "à®°à®¾à®•à®¿ à®•à¯‚à®´à¯ (à®•à¯‡à®´à¯à®µà®°à®•à¯)",
+        "tamil_name": "ராகி கூழ் (கேழ்வரகு)",
         "ingredients": ["ragi", "finger millet", "milk", "water", "almond", "almonds", "jaggery", "curd"],
         "meal_type": "Breakfast",
         "calories": 210,
@@ -60,7 +60,7 @@ RECIPES_DATABASE = [
     },
     {
         "name": "Moong Dal Spinach Khichdi",
-        "tamil_name": "à®•à¯€à®°à¯ˆ à®ªà®¾à®šà®¿à®ªà¯à®ªà®°à¯à®ªà¯à®ªà¯ à®•à®¿à®šà¯à®šà®Ÿà®¿",
+        "tamil_name": "கீரை பாசிப்பருப்பு கிச்சடி",
         "ingredients": ["moong dal", "dal", "spinach", "palak", "rice", "tomato", "onion", "cumin", "garlic"],
         "meal_type": "Dinner",
         "calories": 310,
@@ -83,7 +83,7 @@ RECIPES_DATABASE = [
     },
     {
         "name": "Sprouted Sundal with Curry Leaves",
-        "tamil_name": "à®®à¯à®³à¯ˆà®•à®Ÿà¯à®Ÿà®¿à®¯ à®šà¯à®£à¯à®Ÿà®²à¯",
+        "tamil_name": "முளைகட்டிய சுண்டல்",
         "ingredients": ["chana", "chickpeas", "moong", "sprouts", "mustard", "curry leaves", "coconut", "lemon"],
         "meal_type": "Snack",
         "calories": 180,
@@ -106,7 +106,7 @@ RECIPES_DATABASE = [
     },
     {
         "name": "Vegetable Oats Upma",
-        "tamil_name": "à®•à®¾à®¯à¯à®•à®±à®¿ à®“à®Ÿà¯à®¸à¯ à®‰à®ªà¯à®ªà¯à®®à®¾",
+        "tamil_name": "காய்கறி ஓட்ஸ் உப்புமா",
         "ingredients": ["oats", "onion", "tomato", "carrot", "carrots", "beans", "green chili", "mustard", "peas"],
         "meal_type": "Breakfast",
         "calories": 240,
@@ -129,7 +129,7 @@ RECIPES_DATABASE = [
     },
     {
         "name": "Garlic Pepper Rasam with Steamed Rice",
-        "tamil_name": "à®ªà¯‚à®£à¯à®Ÿà¯ à®®à®¿à®³à®•à¯ à®°à®šà®®à¯",
+        "tamil_name": "பூண்டு மிளகு ரசம் சாதம்",
         "ingredients": ["garlic", "pepper", "cumin", "tomato", "tamarind", "coriander", "turmeric", "rice"],
         "meal_type": "Lunch",
         "calories": 220,
@@ -149,6 +149,52 @@ RECIPES_DATABASE = [
             "Use lemon juice instead of excess tamarind for a fresher flavor with less sodium."
         ],
         "is_veg": True
+    },
+    {
+        "name": "Vegetable Toor Dal Sambar with Brown Rice",
+        "tamil_name": "சாம்பார் சாதம்",
+        "ingredients": ["toor dal", "dal", "tomato", "onion", "carrot", "drumstick", "curry leaves", "coriander", "rice", "mustard"],
+        "meal_type": "Lunch / Dinner",
+        "calories": 310,
+        "protein_g": 11.5,
+        "carbs_g": 54.0,
+        "fat_g": 3.0,
+        "fiber_g": 7.5,
+        "sodium_mg": 195,
+        "cardio_benefit": "High dietary potassium and plant-based protein from toor dal help maintain normal arterial pressure.",
+        "cooking_time_mins": 25,
+        "preparation_steps": [
+            "Pressure cook toor dal with a pinch of turmeric until soft and mash thoroughly.",
+            "Simmer chopped drumsticks, carrots, onions, and tomatoes with sambar powder in tamarind water.",
+            "Combine cooked dal with the vegetables, temper with mustard and curry leaves, and serve with brown rice."
+        ],
+        "healthier_tips": [
+            "Use potassium-rich vegetables like drumsticks and carrots; season with homemade sambar powder without added salt."
+        ],
+        "is_veg": True
+    },
+    {
+        "name": "Curd Rice with Pomegranate & Ginger",
+        "tamil_name": "தயிர் சாதம்",
+        "ingredients": ["curd", "yogurt", "rice", "ginger", "pomegranate", "curry leaves", "mustard", "green chili"],
+        "meal_type": "Lunch",
+        "calories": 250,
+        "protein_g": 7.5,
+        "carbs_g": 44.0,
+        "fat_g": 3.5,
+        "fiber_g": 3.0,
+        "sodium_mg": 120,
+        "cardio_benefit": "Probiotics from curd regulate gut microbiome and systemic inflammation; pomegranate polyphenols support vascular endothelium.",
+        "cooking_time_mins": 10,
+        "preparation_steps": [
+            "Soft cook rice, mash slightly, and cool to room temperature.",
+            "Mix with fresh low-fat curd and a splash of milk to maintain a creamy consistency.",
+            "Temper mustard seeds, finely minced ginger, and curry leaves in 1/2 tsp oil, and top with fresh pomegranate pearls."
+        ],
+        "healthier_tips": [
+            "Use low-fat homemade yogurt or curd; add fresh ginger and pomegranate seeds for antioxidant protection without extra sodium."
+        ],
+        "is_veg": True
     }
 ]
 
@@ -163,7 +209,7 @@ def suggest_meals(request: IngredientMealRequest, current_user: dict = Depends(g
     for recipe in RECIPES_DATABASE:
         if diet_pref == "vegetarian" and not recipe["is_veg"]:
             continue
-        if diet_pref == "vegan" and "milk" in recipe["ingredients"]:
+        if diet_pref == "vegan" and ("milk" in recipe["ingredients"] or "curd" in recipe["ingredients"] or not recipe["is_veg"]):
             continue
         if req_meal_type and req_meal_type not in ["all", "any"]:
             if req_meal_type not in recipe["meal_type"].lower():
@@ -188,10 +234,10 @@ def suggest_meals(request: IngredientMealRequest, current_user: dict = Depends(g
         scored_meals = [{"recipe": r, "matched": [], "score": 0} for r in RECIPES_DATABASE[:3]]
 
     suggestions = []
-    for item in scored_meals[:5]:
+    for item in scored_meals[:6]:
         r = item["recipe"]
         matched_items = item["matched"]
-        missing = [ing for ing in r["ingredients"][:4] if not any(m in ing or ing in m for m in matched_items)]
+        missing = [ing for ing in r["ingredients"] if not any(m in ing or ing in m for m in matched_items)]
         
         step_list = r["preparation_steps"]
         tip_text = r["healthier_tips"][0] if r.get("healthier_tips") else "Use minimal oil and keep salt modest."
@@ -199,8 +245,9 @@ def suggest_meals(request: IngredientMealRequest, current_user: dict = Depends(g
         suggestions.append(MealItemSuggestion(
             name=r["name"],
             tamil_name=r["tamil_name"],
+            ingredients=r["ingredients"],
             matched_ingredients=matched_items if matched_items else ["Staple pantry items"],
-            missing_or_optional_ingredients=missing[:3],
+            missing_or_optional_ingredients=missing[:4],
             meal_type=r["meal_type"],
             calories=r["calories"],
             protein_g=r["protein_g"],

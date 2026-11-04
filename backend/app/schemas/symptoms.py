@@ -1,6 +1,7 @@
 """Pydantic schemas for AI Symptom-Based Triage, Clinical Rule Engine, and Emergency Response."""
+import re
 from typing import List, Optional, Dict, Any
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 class SymptomExtractionRequest(BaseModel):
     text: str = Field(..., description="User's description of symptoms in English or Tamil")
@@ -23,7 +24,7 @@ class SymptomExtractionResponse(BaseModel):
     detected_language: str
     extracted_symptoms: List[ExtractedSymptomItem]
     associated_symptoms: List[str] = Field(default_factory=list)
-    has_emergency_keywords: bool
+    has_emergency_keywords: bool                                                                                                                                                                
     emergency_flags: List[str] = []
     onset_detected: Optional[str] = None
     duration_detected: Optional[str] = None
@@ -112,12 +113,56 @@ class TriageAssessmentResponse(BaseModel):
 class TrustedContact(BaseModel):
     id: Optional[str] = None
     user_id: Optional[str] = None
-    name: str
-    relationship: str
-    phone: str
+    name: str = Field(..., min_length=2, max_length=100)
+    relationship: str = Field("Family", description="e.g. Spouse, Parent, Sibling, Friend, Doctor")
+    phone: str = Field(..., description="Mobile phone number with 10-15 digits")
     email: Optional[str] = None
     is_primary: bool = True
     created_at: Optional[str] = None
+
+    @field_validator("phone")
+    def validate_phone(cls, v):
+        clean = re.sub(r"[\s\-\(\)]", "", str(v).strip())
+        digits_only = re.sub(r"\D", "", clean)
+        if len(digits_only) < 10 or len(digits_only) > 15:
+            raise ValueError("Mobile phone number must contain between 10 and 15 digits.")
+        return clean
+
+class ReverseGeocodeRequest(BaseModel):
+    latitude: float = Field(..., ge=-90.0, le=90.0)
+    longitude: float = Field(..., ge=-180.0, le=180.0)
+
+class ReverseGeocodeResponse(BaseModel):
+    latitude: float
+    longitude: float
+    formatted_address: str
+    maps_url: str
+    city: Optional[str] = None
+    state: Optional[str] = None
+    country: Optional[str] = None
+
+class SendEmergencyAlertRequest(BaseModel):
+    report_id: Optional[str] = None
+    contact_id: Optional[str] = None
+    contact_name: Optional[str] = None
+    contact_phone: str
+    include_location: bool = False
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    readable_address: Optional[str] = None
+    custom_notes: Optional[str] = None
+
+class SendEmergencyAlertResponse(BaseModel):
+    success: bool
+    provider_configured: bool
+    status_message: str
+    recipient_phone: str
+    recipient_name: Optional[str] = None
+    emergency_message: str
+    sms_fallback_url: str
+    whatsapp_fallback_url: str
+    maps_url: Optional[str] = None
+    sent_at: str
 
 class EmergencySummaryRequest(BaseModel):
     report_id: str

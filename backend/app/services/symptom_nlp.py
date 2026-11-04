@@ -104,6 +104,7 @@ VOCABULARY_DEFINITIONS = {
         "keywords_en": [
             r"\bpain\s+in\s+(my\s+)?left\s+arm\b", r"\bleft\s+arm\s+pain\b",
             r"\bpain\s+radiating\b", r"\bpain\s+spreading\b", r"\bjaw\s+pain\b",
+            r"\bspreading\s+to\b", r"\bradiating\s+to\b", r"\bpressure\s+spreading\b",
             r"\bneck\s+pain\b", r"\bupper\s+back\s+pain\b", r"\bshoulder\s+pain\b",
             r"\bleft\s+shoulder\s+pain\b", r"\bpain\s+in\s+arm\b", r"\bpain\s+in\s+jaw\b"
         ],

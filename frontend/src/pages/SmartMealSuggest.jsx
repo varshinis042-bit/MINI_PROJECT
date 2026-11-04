@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react"
+import React, { useState } from "react"
 import {
   Utensils,
   Plus,
@@ -114,7 +114,7 @@ export const SmartMealSuggest = () => {
             <span className="text-[11px] font-bold uppercase tracking-wider text-teal-400 bg-teal-950 border border-teal-500/30 px-2.5 py-0.5 rounded-full">
               {lang === "ta" ? "இதயத்திற்கு உகந்த சமையல்" : "Heart-Friendly Kitchen"}
             </span>
-            <span className="text-xs text-slate-500">?</span>
+            <span className="text-xs text-slate-500">•</span>
             <span className="text-xs text-emerald-400 flex items-center gap-1">
               <Leaf className="w-3 h-3" /> South Indian Traditional
             </span>
@@ -336,17 +336,21 @@ export const SmartMealSuggest = () => {
                       }`}
                     >
                       <div className="flex items-start justify-between gap-2">
-                        <div>
+                        <div className="flex-1 min-w-0">
                           <h3 className="text-sm font-bold text-white">
                             {lang === "ta" && dish.tamil_name ? dish.tamil_name : dish.name}
                           </h3>
-                          {dish.tamil_name && (
-                            <span className="text-[11px] text-teal-400 block">
-                              {lang === "ta" ? dish.name : dish.tamil_name}
+                          {lang === "ta" ? (
+                            <span className="text-[11px] text-teal-400 block truncate">
+                              {dish.name}
+                            </span>
+                          ) : (
+                            <span className="text-[11px] text-teal-400/90 block truncate">
+                              {dish.tamil_name ? `Tamil: ${dish.tamil_name}` : (dish.cardio_benefit || dish.meal_type)}
                             </span>
                           )}
                         </div>
-                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
+                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700 flex-shrink-0">
                           {dish.meal_type || "Meal"}
                         </span>
                       </div>
@@ -383,11 +387,16 @@ export const SmartMealSuggest = () => {
                           ? selectedRecipe.tamil_name
                           : selectedRecipe.name}
                       </h2>
-                      {selectedRecipe.tamil_name && (
+                      {lang === "ta" ? (
                         <p className="text-xs text-teal-300">
-                          {lang === "ta" ? selectedRecipe.name : selectedRecipe.tamil_name}
+                          {selectedRecipe.name}
                         </p>
-                      )}
+                      ) : selectedRecipe.tamil_name ? (
+                        <p className="text-xs text-slate-300 flex items-center gap-1.5 mt-0.5">
+                          <span className="text-teal-400 font-semibold">Tamil / Regional Name:</span>
+                          <span className="text-teal-200">{selectedRecipe.tamil_name}</span>
+                        </p>
+                      ) : null}
                     </div>
 
                     <div className="flex items-center gap-3">
@@ -401,6 +410,17 @@ export const SmartMealSuggest = () => {
                       </div>
                     </div>
                   </div>
+
+                  {/* Cardio Benefit Callout */}
+                  {selectedRecipe.cardio_benefit && (
+                    <div className="p-3.5 rounded-2xl bg-teal-950/40 border border-teal-500/30 text-xs text-teal-200 flex items-start gap-2.5">
+                      <Heart className="w-4 h-4 text-teal-400 flex-shrink-0 mt-0.5" />
+                      <span className="leading-relaxed">
+                        <strong className="text-teal-300">{lang === "ta" ? "இதய நலம்: " : "Heart Benefit: "}</strong>
+                        {selectedRecipe.cardio_benefit}
+                      </span>
+                    </div>
+                  )}
 
                   {/* Macronutrients Breakdown */}
                   <div>
@@ -430,16 +450,41 @@ export const SmartMealSuggest = () => {
                   {/* Ingredients needed & Cooking Instructions */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div className="p-4 rounded-2xl bg-slate-950/50 border border-slate-800/80 space-y-2.5">
-                      <h4 className="text-xs font-bold uppercase tracking-wider text-teal-300">
-                        {lang === "ta" ? "தேவையான பொருட்கள்" : "Ingredients List"}
-                      </h4>
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-teal-300">
+                          {lang === "ta" ? "தேவையான பொருட்கள்" : "Ingredients List"}
+                        </h4>
+                        <span className="text-[10px] text-slate-400 font-semibold">
+                          {(selectedRecipe.ingredients || selectedRecipe.matched_ingredients || []).length} items
+                        </span>
+                      </div>
                       <ul className="space-y-1.5 text-xs text-slate-300">
-                        {selectedRecipe.ingredients && selectedRecipe.ingredients.map((ing, i) => (
-                          <li key={i} className="flex items-center gap-2">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
-                            <span>{ing}</span>
-                          </li>
-                        ))}
+                        {(selectedRecipe.ingredients && selectedRecipe.ingredients.length > 0
+                          ? selectedRecipe.ingredients
+                          : (selectedRecipe.matched_ingredients || ["Rice", "Spices", "Oil"])
+                        ).map((ing, i) => {
+                          const isMatched = selectedIngredients.some(
+                            (sel) => sel.toLowerCase().includes(ing.toLowerCase()) || ing.toLowerCase().includes(sel.toLowerCase())
+                          )
+                          const displayName = ing.charAt(0).toUpperCase() + ing.slice(1)
+                          return (
+                            <li key={i} className="flex items-center justify-between py-1 px-2.5 rounded-xl bg-slate-900/60 border border-slate-800/60">
+                              <span className="flex items-center gap-2">
+                                <CheckCircle2 className={`w-3.5 h-3.5 flex-shrink-0 ${isMatched ? "text-emerald-400" : "text-slate-500"}`} />
+                                <span className={isMatched ? "text-white font-medium" : "text-slate-300"}>{displayName}</span>
+                              </span>
+                              <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${
+                                isMatched
+                                  ? "bg-emerald-950/80 text-emerald-300 border border-emerald-500/30"
+                                  : "bg-slate-800 text-slate-400 border border-slate-700"
+                              }`}>
+                                {isMatched
+                                  ? (lang === "ta" ? "உங்களிடம் உள்ளது" : "In your kitchen")
+                                  : (lang === "ta" ? "தேவைப்படும் பொருள்" : "Pantry / Optional")}
+                              </span>
+                            </li>
+                          )
+                        })}
                       </ul>
                     </div>
 

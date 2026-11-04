@@ -21,7 +21,8 @@ import {
   Heart,
   ShieldCheck,
   Stethoscope,
-  History
+  History,
+  Users
 } from "lucide-react"
 import { useLanguage } from "../context/LanguageContext"
 
@@ -33,6 +34,7 @@ export const Sidebar = () => {
     { name: t("nav_profile"), path: "/profile", icon: User },
     { name: t("nav_symptom_checker", "AI Symptom Checker"), path: "/symptom-checker", icon: Stethoscope, badge: "AI" },
     { name: t("nav_symptom_history", "Symptom History"), path: "/symptom-history", icon: History },
+    { name: t("nav_trusted_contacts", "Trusted Contacts"), path: "/trusted-contacts", icon: Users },
     { name: t("nav_risk_assessment"), path: "/risk-assessment", icon: HeartPulse },
     { name: t("nav_ecg"), path: "/ecg", icon: Activity, badge: "AI" },
     { name: t("nav_result"), path: "/prediction-result", icon: Activity },

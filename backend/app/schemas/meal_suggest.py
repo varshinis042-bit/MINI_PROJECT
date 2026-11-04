@@ -1,10 +1,11 @@
-﻿"""Pydantic schemas for Smart Ingredient-Based Meal Suggestions."""
+"""Pydantic schemas for Smart Ingredient-Based Meal Suggestions."""
 from typing import List, Optional
 from pydantic import BaseModel, Field
 
 class MealItemSuggestion(BaseModel):
     name: str
     tamil_name: str
+    ingredients: List[str] = []
     matched_ingredients: List[str] = []
     missing_or_optional_ingredients: List[str] = []
     meal_type: str = "Breakfast"

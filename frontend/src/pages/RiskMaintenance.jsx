@@ -18,7 +18,11 @@ import {
   Info,
   Heart,
   Save,
-  RotateCcw
+  RotateCcw,
+  AlertOctagon,
+  Sparkles,
+  PhoneCall,
+  Check
 } from "lucide-react"
 import api from "../services/api"
 import { useLanguage } from "../context/LanguageContext"
@@ -34,6 +38,7 @@ export const RiskMaintenance = () => {
   const [profile, setProfile] = useState(null)
   const [latestPred, setLatestPred] = useState(null)
   const [progressHistory, setProgressHistory] = useState([])
+  const [selectedTier, setSelectedTier] = useState("HIGH") // "LOW" | "MODERATE" | "HIGH"
 
   // Measurement input fields
   const [measurements, setMeasurements] = useState({
@@ -71,8 +76,13 @@ export const RiskMaintenance = () => {
         })
       }
 
-      if (predRes.status === "fulfilled" && predRes.value.data.length > 0) {
-        setLatestPred(predRes.value.data[0])
+      if (predRes.status === "fulfilled" && predRes.value.data && predRes.value.data.length > 0) {
+        const lp = predRes.value.data[0]
+        setLatestPred(lp)
+        const cat = (lp.risk_category || (lp.risk_percentage >= 50 ? "HIGH" : lp.risk_percentage >= 20 ? "MODERATE" : "LOW")).toUpperCase()
+        setSelectedTier(cat)
+      } else {
+        setSelectedTier("MODERATE")
       }
 
       if (progRes.status === "fulfilled" && progRes.value.data) {
@@ -106,8 +116,8 @@ export const RiskMaintenance = () => {
         blood_glucose: measurements.blood_glucose,
         weight_kg: measurements.weight_kg,
         resting_hr: measurements.resting_hr,
-        risk_percentage: latestPred ? latestPred.risk_percentage : 45.0,
-        lifestyle_score: 75,
+        risk_percentage: latestPred ? latestPred.risk_percentage : (selectedTier === "HIGH" ? 75.0 : selectedTier === "MODERATE" ? 35.0 : 8.0),
+        lifestyle_score: selectedTier === "LOW" ? 88 : selectedTier === "MODERATE" ? 72 : 55,
         created_at: new Date().toISOString()
       }
       await api.post("/progress", checkinPayload)
@@ -155,8 +165,283 @@ export const RiskMaintenance = () => {
     )
   }
 
-  const isHighRisk = latestPred?.risk_category === "HIGH"
+  const userActualTier = latestPred
+    ? (latestPred.risk_category || (latestPred.risk_percentage >= 50 ? "HIGH" : latestPred.risk_percentage >= 20 ? "MODERATE" : "LOW")).toUpperCase()
+    : "MODERATE"
+
+  const activeTier = selectedTier || userActualTier
+  const isHigh = activeTier === "HIGH"
+  const isMod = activeTier === "MODERATE"
+  const isLow = activeTier === "LOW"
+
   const recentRecords = progressHistory.slice(-5).reverse()
+
+  // Dynamic Content Matrix per Risk Tier
+  const tierContent = {
+    LOW: {
+      tag: isTa ? "குறைந்த அபாயம் • பராமரிப்பு முறை" : "Low Risk • Primary Wellness Protocol",
+      headline: isTa ? "குறைந்த அபாய நிலை: நீண்டகால ஆரோக்கியத்தைப் பேணுதல்" : "Low Cardiovascular Risk: Long-Term Wellness Maintenance",
+      description: isTa
+        ? "உங்கள் இதய அபாயம் தற்போது குறைவான வரம்பில் உள்ளது. வழக்கமான ஆரோக்கியப் பழக்கங்கள், சரிவிகித உணவு மற்றும் மிதமான உடற்பயிற்சி மூலம் இதய தமனிகளை ஆயுள் முழுவதும் நெகிழ்வாக வைத்திருக்க முடியும்."
+        : "Your estimated cardiovascular risk is in the low tier (< 20%). The primary objective is sustainable wellness: preserving vascular elasticity, maintaining healthy lipid ratios, and preventing age-related arterial stiffening.",
+      bannerTheme: "border-emerald-500/40 bg-emerald-950/20 text-emerald-300",
+      iconColor: "text-emerald-400",
+      accentBg: "bg-emerald-950/60 border-emerald-500/30 text-emerald-300",
+      areas: [
+        {
+          id: 1,
+          icon: Activity,
+          title: isTa ? "1. இரத்த அழுத்த கண்காணிப்பு" : "1. Blood Pressure Maintenance",
+          target: isTa ? "இலக்கு: < 120/80 mmHg" : "Target: < 120/80 mmHg",
+          frequency: isTa ? "மாதம் 1 முறை / இரு வாரத்திற்கு ஒருமுறை" : "Monthly or Bi-Weekly Check",
+          freqColor: "bg-emerald-950/80 text-emerald-300 border border-emerald-500/30",
+          body: isTa
+            ? "அமைதியாக 5 நிமிடங்கள் அமர்ந்த பின் அளவீடு எடுக்கவும். எப்போதாவது ஏற்படும் தற்காலிக உயர்வுகளை கவனிக்கவும். தற்போதைய அளவீடுகளை 120/80 mmHg வரம்பில் நிலைநிறுத்துவது தமனிகளின் ரத்த ஓட்டத்தை சீராக வைத்திருக்கும்."
+            : "Sit quietly for 5 minutes before recording. Measure periodically at home or during routine doctor visits. Keeping readings consistently below 120/80 mmHg prevents early arterial wall remodeling and stiffening.",
+          tip: isTa ? "வழக்கமான நடை மற்றும் போதுமான தண்ணீர் அருந்துதல் BP-யை சீராக வைக்கும்" : "Adequate hydration and 7–8 hours sleep maintain healthy circadian blood pressure dips"
+        },
+        {
+          id: 2,
+          icon: Droplet,
+          title: isTa ? "2. கொலஸ்ட்ரால் சமநிலை" : "2. Cholesterol & Lipid Balance",
+          target: isTa ? "மொத்த கொலஸ்ட்ரால் < 180 mg/dL | LDL < 100" : "Total < 180 mg/dL | LDL < 100 mg/dL",
+          frequency: isTa ? "ஆண்டுக்கு 1 முறை லிப்பிட் பரிசோதனை" : "Annual Fasting Lipid Panel",
+          freqColor: "bg-emerald-950/80 text-emerald-300 border border-emerald-500/30",
+          body: isTa
+            ? "வருடத்திற்கு ஒருமுறை லிப்பிட் பரிசோதனை (Lipid Profile) செய்து நல்ல கொழுப்பை (HDL > 45 mg/dL) பராமரிக்கவும். ஆரோக்கியமான தாவர எண்ணெய்கள், பருப்பு மற்றும் நட்ஸ் வகைகளை அளவாக உணவில் சேர்க்கவும்."
+            : "Maintain optimal protective HDL (> 45 mg/dL) through regular aerobic movement. Schedule an annual fasting lipid profile. Soluble fiber from lentils, apples, and oats naturally prevents circulating LDL reabsorption.",
+          tip: isTa ? "ஓட்ஸ், பாசிப்பருப்பு மற்றும் பச்சைக் காய்கறிகள் கெட்ட கொழுப்பைத் தடுக்கும்" : "Whole grains, moong dal, and walnuts promote healthy lipid particle distribution"
+        },
+        {
+          id: 3,
+          icon: Scale,
+          title: isTa ? "3. இரத்த சர்க்கரை மேலாண்மை" : "3. Blood Glucose Stability",
+          target: isTa ? "வெறும் வயிற்று சர்க்கரை: 70–99 mg/dL | HbA1c < 5.6%" : "Fasting: 70–99 mg/dL | HbA1c < 5.6%",
+          frequency: isTa ? "ஆண்டுக்கு 1 முறை பரிசோதனை" : "Annual Preventive Screening",
+          freqColor: "bg-emerald-950/80 text-emerald-300 border border-emerald-500/30",
+          body: isTa
+            ? "தீட்டிய வெள்ளை அரிசி, சர்க்கரை மற்றும் குளிர்பானங்களை குறைத்து, ராகி, சாமை, தினை போன்ற சிறுதானியங்களை உணவில் சேர்க்கவும். இது இன்சுலின் தடையைத் தடுத்து சர்க்கரையை சீராக வைக்கும்."
+            : "Maintain fasting blood glucose between 70–99 mg/dL. Emphasize low-glycemic traditional South Indian staples (Ragi, Thinai, Samai) and minimize refined sweets and sugary carbonated drinks.",
+          tip: isTa ? "சிறுதானிய நார்ச்சத்து ரத்தத்தில் சர்க்கரை திடீரென உயர்வதைத் தடுக்கிறது" : "Sustained fiber intake prevents insulin resistance and microvascular endothelial wear"
+        },
+        {
+          id: 4,
+          icon: Footprints,
+          title: isTa ? "4. வழக்கமான உடற்பயிற்சி பழக்கம்" : "4. Active Lifestyle & Fitness Routine",
+          target: isTa ? "150–300 நிமிடம் / வாரம் (மிதமானது)" : "150–300 mins / week (Moderate/Brisk)",
+          frequency: isTa ? "வாரத்தில் 4–6 நாட்கள்" : "4–6 Days / Week",
+          freqColor: "bg-emerald-950/80 text-emerald-300 border border-emerald-500/30",
+          body: isTa
+            ? "விறுவிறுப்பான நடை, யோகாசனம், நீச்சல் அல்லது மிதிவண்டி ஓட்டுதல் என வாரத்திற்கு 150 முதல் 300 நிமிடங்கள் சுறுசுறுப்பாக இருக்கவும். ஓய்வு நேர இதயத் துடிப்பு 60-75 BPM வரம்பில் இருப்பதை உறுதிசெய்யவும்."
+            : "Aim for 150–300 minutes of weekly moderate aerobic walking, cycling, or swimming, plus 2 days of functional strength exercises. Aerobic fitness increases myocardial stroke volume and resting heart rate efficiency.",
+          tip: isTa ? "சூரிய நமஸ்காரம் மற்றும் விறுவிறுப்பான நடை இதய தசைகளை பலப்படுத்தும்" : "Regular brisk walking enhances microvascular collateralization and longevity",
+          link: "/exercise"
+        },
+        {
+          id: 5,
+          icon: Utensils,
+          title: isTa ? "5. ஆரோக்கியமான உணவுப் பழக்கம்" : "5. Heart-Protective Daily Diet",
+          target: isTa ? "சோடியம்: < 2,300 mg/நாள் (1 டீஸ்பூன் உப்பு)" : "Sodium: < 2,300 mg/day (~1 tsp salt)",
+          frequency: isTa ? "தினசரி சரிவிகித உணவு தட்டு" : "Daily Balanced Plate (DASH Pattern)",
+          freqColor: "bg-emerald-950/80 text-emerald-300 border border-emerald-500/30",
+          body: isTa
+            ? "உணவுத் தட்டில் 50% பச்சைக் காய்கறி மற்றும் பழங்கள், 25% பருப்பு/முட்டை, 25% முழு தானியம் இருப்பதை உறுதிசெய்யவும். பொரித்த உணவுகள் மற்றும் அதிக சோடியம் பாக்கெட் நொறுக்குத் தீனிகளைத் தவிர்க்கவும்."
+            : "Follow the cardioprotective plate model: half plate vegetables/salads, quarter lean protein (lentils/dal/egg), quarter whole grains. Restrict sodium under 2,300 mg/day and use cold-pressed sesame or mustard oils.",
+          tip: isTa ? "தக்காளி, சுரைக்காய் மற்றும் மோரில் உள்ள பொட்டாசியம் ரத்த நாளங்களுக்கு சிறந்தது" : "Fresh garlic, ginger, and curry leaves naturally supply protective polyphenols",
+          link: "/diet"
+        },
+        {
+          id: 6,
+          icon: CalendarCheck,
+          title: isTa ? "6. வருடாந்திர மருத்துவ பரிசோதனை" : "6. Annual Preventive Check-Up",
+          target: isTa ? "வருடாந்திர முழு உடல் நலம்" : "Yearly Wellness Assessment",
+          frequency: isTa ? "ஆண்டுக்கு 1 முறை மருத்துவ சந்திப்பு" : "Annual Routine Review",
+          freqColor: "bg-emerald-950/80 text-emerald-300 border border-emerald-500/30",
+          body: isTa
+            ? "ஆண்டுக்கு ஒருமுறை உங்கள் குடும்ப மருத்துவரிடம் இரத்த அழுத்தம், கொலஸ்ட்ரால் மற்றும் எடையை மதிப்பாய்வு செய்யவும். சிறப்பு மருந்துகளின் தேவை இல்லை; ஆரோக்கிய வாழ்க்கை முறையே போதுமானது."
+            : "Consult your primary physician once a year to review baseline vitals and lab panels. No cardiac pharmacotherapy is required; disciplined lifestyle habits form your strongest protective shield.",
+          tip: isTa ? "ஆரம்ப கட்ட சுய கண்காணிப்பு எதிர்கால இதய உபாதைகளை 80% வரை தவிர்க்கும்" : "Consistent routine screening identifies subtle biomarker drifts 10 years before clinical events",
+          link: "/reminders"
+        }
+      ]
+    },
+    MODERATE: {
+      tag: isTa ? "மிதமான அபாயம் • கட்டுப்பாட்டு முறை" : "Moderate Risk • Targeted Attenuation Protocol",
+      headline: isTa ? "மிதமான அபாய நிலை: காரணிகளை முன்கூட்டியே கட்டுப்படுத்துதல்" : "Moderate Cardiovascular Risk: Targeted Risk Attenuation",
+      description: isTa
+        ? "உங்கள் இதய அபாயம் மிதமான வரம்பில் (20% – 50%) உள்ளது. இது எச்சரிக்கை மணியாகும். இரத்த அழுத்தம், உணவு முறை மற்றும் கொழுப்பை திட்டமிட்டு கட்டுப்படுத்துவதன் மூலம் இந்த அபாயத்தை எளிதாகக் குறைக்க முடியும்."
+        : "Your estimated cardiovascular risk is in the moderate tier (20%–50%). Targeted lifestyle interventions, sodium reduction, and focused biomarker tracking can successfully bend your risk trajectory back to low.",
+      bannerTheme: "border-amber-500/40 bg-amber-950/20 text-amber-200",
+      iconColor: "text-amber-400",
+      accentBg: "bg-amber-950/60 border-amber-500/30 text-amber-300",
+      areas: [
+        {
+          id: 1,
+          icon: Activity,
+          title: isTa ? "1. இரத்த அழுத்த கண்காணிப்பு" : "1. Blood Pressure Targeted Control",
+          target: isTa ? "இலக்கு: < 125/80 mmHg" : "Target: < 125/80 mmHg",
+          frequency: isTa ? "வாரந்தோறும் 2 முறை (காலை & மாலை)" : "Weekly Log (Morning & Evening)",
+          freqColor: "bg-amber-950/80 text-amber-300 border border-amber-500/30",
+          body: isTa
+            ? "வாரத்திற்கு இரண்டு முறை காலை மற்றும் மாலை இருவேளைகளிலும் இரத்த அழுத்தத்தைப் பதிவு செய்யவும். 130–139 mmHg எல்லைக்கு மேல் தொடர்ந்து இருந்தால் மருத்துவ ஆலோசனையுடன் உணவில் உப்பைக் குறைக்கவும்."
+            : "Log blood pressure twice weekly at consistent times (morning before breakfast, evening before dinner). If readings persistently hover between 130–139 mmHg, intensify sodium restriction and review with your doctor.",
+          tip: isTa ? "உணவில் உப்பை 1,800 மி.கி-க்குள் கட்டுப்படுத்துவது சிஸ்டாலிக் அழுத்தத்தை குறைக்கும்" : "Restricting sodium below 1,800 mg/day directly relieves systemic peripheral vascular resistance"
+        },
+        {
+          id: 2,
+          icon: Droplet,
+          title: isTa ? "2. கொலஸ்ட்ரால் & லிப்பிட் குறைப்பு" : "2. Targeted Lipid Lowering",
+          target: isTa ? "மொத்த கொலஸ்ட்ரால் < 170 mg/dL | LDL < 80" : "Total < 170 mg/dL | LDL < 80 mg/dL",
+          frequency: isTa ? "3 முதல் 6 மாதங்களுக்கு ஒருமுறை" : "Every 3 to 6 Months",
+          freqColor: "bg-amber-950/80 text-amber-300 border border-amber-500/30",
+          body: isTa
+            ? "வறுத்த உணவுகள், டால்டா மற்றும் பேக்கரி தின்பண்டங்களை முற்றிலும் தவிர்க்கவும். வெந்தயம், ஓட்ஸ், பார்லி மற்றும் ஆளி விதைகளை உணவில் சேர்த்து 3 முதல் 6 மாதங்களுக்குள் மீண்டும் பரிசோதிக்கவும்."
+            : "Completely eliminate trans-fats, bakery shortenings, and re-used deep-frying oils. Incorporate soluble beta-glucan fiber and fenugreek (methi) seeds. Schedule repeat lipid panels every 3–6 months.",
+          tip: isTa ? "முளைகட்டிய வெந்தயம் மற்றும் பாசிப்பருப்பு கெட்ட கொழுப்பை (LDL) கணிசமாக குறைக்கும்" : "Soluble fiber and plant sterols block intestinal cholesterol re-absorption"
+        },
+        {
+          id: 3,
+          icon: Scale,
+          title: isTa ? "3. இரத்த சர்க்கரை தீவிர கட்டுப்பாடு" : "3. Glycemic Regulation & Carb Swaps",
+          target: isTa ? "வெறும் வயிற்று சர்க்கரை: < 100 mg/dL | HbA1c < 5.7%" : "Fasting: < 100 mg/dL | HbA1c < 5.7%",
+          frequency: isTa ? "3 மாதங்களுக்கு ஒருமுறை (HbA1c & Fasting)" : "Every 3 Months (Quarterly HbA1c)",
+          freqColor: "bg-amber-950/80 text-amber-300 border border-amber-500/30",
+          body: isTa
+            ? "வெள்ளை அரிசிக்கு பதிலாக ராகி, கம்பு, குதிரைவாலி போன்ற சிறுதானியங்களை பயன்படுத்தவும். சாப்பிட்ட பிறகு 15 நிமிடங்கள் மெதுவாக நடப்பது ரத்த சர்க்கரை கூர்மையாக உயர்வதைத் தடுக்கும்."
+            : "Swap polished white rice for whole finger millet (Ragi), Foxtail millet (Thinai), or brown rice. Take a 15-minute gentle post-meal walk to blunt postprandial glucose surges and lower insulin spikes.",
+          tip: isTa ? "சாப்பிட்ட பின் 15 நிமிட நடைப்பயிற்சி சர்க்கரையை இயற்கையாகவே தசை செல்களுக்குள் ஈர்க்கிறது" : "Post-meal walks activate non-insulin dependent glucose uptake in skeletal muscle"
+        },
+        {
+          id: 4,
+          icon: Footprints,
+          title: isTa ? "4. திட்டமிட்ட மிதமான உடற்பயிற்சி" : "4. Structured Aerobic Walking",
+          target: isTa ? "150 நிமிடம் / வாரம் (தினமும் 30 நிமிடம்)" : "150 mins / week (30 mins x 5 days)",
+          frequency: isTa ? "வாரத்தில் 5 நாட்கள்" : "5 Days / Week",
+          freqColor: "bg-amber-950/80 text-amber-300 border border-amber-500/30",
+          body: isTa
+            ? "பேசக்கூடிய வேகத்தில் நிதானமாக விறுவிறுப்பான நடைப்பயிற்சி மேற்கொள்ளவும். தொடங்கும் முன் 5 நிமிடம் வார்ம்-அப் மற்றும் முடிவில் கூல்-டவுன் அவசியம். திடீர் கடுமையான ஓட்டங்களைத் தவிர்க்கவும்."
+            : "Perform 30 minutes of moderate aerobic walking 5 days a week at a conversational pace. Include 5-minute warm-up and cool-down periods. Avoid sudden unconditioned sprinting or heavy lifting.",
+          tip: isTa ? "அனுலோம் விலோம் மூச்சுப்பயிற்சி நரம்பு அழுத்தத்தை தணித்து இரத்த ஓட்டத்தை சீராக்கும்" : "Anulom Vilom and slow diaphragmatic breathing reduce sympathetic vascular tone",
+          link: "/exercise"
+        },
+        {
+          id: 5,
+          icon: Utensils,
+          title: isTa ? "5. சோடியம் கட்டுப்படுத்தப்பட்ட DASH உணவு" : "5. Sodium-Restricted Cardioprotective Diet",
+          target: isTa ? "சோடியம்: < 1,800 mg/நாள் (முக்கால் டீஸ்பூன் உப்பு)" : "Sodium: < 1,800 mg/day (~3/4 tsp salt)",
+          frequency: isTa ? "கண்டிப்பான தினசரி உணவு கட்டுப்பாடு" : "Daily Strict DASH Plan",
+          freqColor: "bg-amber-950/80 text-amber-300 border border-amber-500/30",
+          body: isTa
+            ? "ஊறுகாய், அப்பளம், உப்பு தின்பண்டங்களை முற்றிலும் தவிர்க்கவும். உப்பிற்கு பதிலாக எலுமிச்சை, பூண்டு, சீரகம், கறிவேப்பிலை கொண்டு சுவை கூட்டவும். நெய்யை 1 ஸ்பூனுக்குள் கட்டுப்படுத்தவும்."
+            : "Eliminate high-sodium items: pickles (achaar), papads, salted crisps, and canned gravies. Season dishes with fresh lime, crushed garlic, cumin, and curry leaves instead of salt. Limit ghee to 1 tsp/day.",
+          tip: isTa ? "பூண்டில் உள்ள அல்லிசின் ரத்த நாளங்களில் ஏற்படும் அழற்சியைத் தடுத்து இதயத்தை காக்கும்" : "Fresh garlic and raw ginger supply allicin to enhance endothelial nitric oxide availability",
+          link: "/diet"
+        },
+        {
+          id: 6,
+          icon: CalendarCheck,
+          title: isTa ? "6. மருத்துவர் ஆலோசனை & மருந்து வழிகாட்டல்" : "6. Clinical Review & Early Intervention",
+          target: isTa ? "3–6 மாதங்களுக்கு ஒருமுறை மருத்துவ சந்திப்பு" : "Semi-Annual Doctor Consultation",
+          frequency: isTa ? "3 முதல் 6 மாதங்களில் மறுபரிசீலனை" : "Every 3–6 Months",
+          freqColor: "bg-amber-950/80 text-amber-300 border border-amber-500/30",
+          body: isTa
+            ? "உங்கள் மருத்துவரிடம் சமீபத்திய அளவீடுகளைக் காட்டி ஆலோசிக்கவும். மருத்துவர் ஏதேனும் தடுப்பு மருந்துகளை (BP அல்லது ஸ்டேடின்) பரிந்துரைத்தால் தவறாமல் குறித்த நேரத்தில் உட்கொள்ளவும்."
+            : "Review clinical trends with your physician semi-annually. Discuss whether preventive low-dose statin or anti-hypertensive therapy is warranted based on your aggregate 10-year risk curve.",
+          tip: isTa ? "துவக்க நிலையிலேயே வாழ்க்கை முறையை மாற்றுவது அபாயத்தை 40% வரை குறைக்கும்" : "Catching subclinical vascular changes early reverses disease trajectory before events occur",
+          link: "/reminders"
+        }
+      ]
+    },
+    HIGH: {
+      tag: isTa ? "உயர் அபாயம் • தீவிர கண்காணிப்பு முறை" : "High Risk • Intensive Clinical Oversight Protocol",
+      headline: isTa ? "உயர் அபாய நிலை: தீவிர மருத்துவ கண்காணிப்பு & தினசரி பாதுகாப்பு" : "High Cardiovascular Risk: Intensive Clinical Management",
+      description: isTa
+        ? "உங்கள் இதய அபாயம் உயர் வரம்பில் (>= 50%) உள்ளது. இது உடனடி மருத்துவ மேலாண்மை மற்றும் கண்டிப்பான தினசரி பராமரிப்பைக் கோருகிறது. மருத்துவர் பரிந்துரைத்த மருந்துகள், கண்டிப்பான உப்பு கட்டுப்பாடு மற்றும் தொடர் கண்காணிப்பால் அபாயத்தை குறைக்க முடியும்."
+        : "Your estimated cardiovascular risk is in the high tier (>= 50%). This status necessitates active physician partnership, disciplined pharmacotherapy adherence, strict sodium restriction, and daily home monitoring to avert acute complications.",
+      bannerTheme: "border-rose-500/40 bg-rose-950/30 text-rose-200",
+      iconColor: "text-rose-400",
+      accentBg: "bg-rose-950/60 border-rose-500/30 text-rose-300",
+      areas: [
+        {
+          id: 1,
+          icon: Activity,
+          title: isTa ? "1. இரத்த அழுத்த தினசரி பதிவு" : "1. Strict Daily Blood Pressure Log",
+          target: isTa ? "கண்டிப்பான இலக்கு: < 120/75 mmHg (மருத்துவர் ஆலோசனையுடன்)" : "Strict Target: < 120/75 mmHg (or as prescribed)",
+          frequency: isTa ? "தினமும் 2 முறை (காலை & மாலை மாத்திரைக்கு முன்)" : "Daily Twice (Morning & Night before meds)",
+          freqColor: "bg-rose-950/80 text-rose-300 border border-rose-500/30 font-bold",
+          body: isTa
+            ? "தினமும் காலை மற்றும் மாலையில் மாத்திரை உட்கொள்வதற்கு முன் தவறாமல் இரத்த அழுத்தத்தைப் பதிவு செய்யவும். 160/100 mmHg-க்கு மேல் சென்றால் மருத்துவரைத் தொடர்பு கொள்ளவும். 180/110 mmHg-க்கு மேல் சென்றால் அவசர மருத்துவ உதவி (112/108) பெறவும்."
+            : "Measure BP twice daily before taking morning and evening medications using a calibrated upper-arm cuff. If SBP >= 160 or DBP >= 100 mmHg, alert your clinician. If BP exceeds 180/110 mmHg, seek immediate emergency care.",
+          tip: isTa ? "முக்கிய எச்சரிக்கை: இரத்த அழுத்த மாத்திரைகளை மருத்துவர் அனுமதியின்றி ஒருநாளும் நிறுத்தக் கூடாது" : "Strict medication adherence prevents mechanical pressure spikes that trigger acute plaque rupture"
+        },
+        {
+          id: 2,
+          icon: Droplet,
+          title: isTa ? "2. தீவிர LDL கொழுப்புக் குறைப்பு" : "2. Aggressive LDL-C Reduction",
+          target: isTa ? "தீவிர இலக்கு: LDL < 55–70 mg/dL" : "Aggressive Target: LDL < 55–70 mg/dL",
+          frequency: isTa ? "6 முதல் 8 வாரங்களுக்கு ஒருமுறை பரிசோதனை" : "Every 6 to 8 Weeks until stabilized",
+          freqColor: "bg-rose-950/80 text-rose-300 border border-rose-500/30 font-bold",
+          body: isTa
+            ? "கார்டியாலஜிஸ்ட் பரிந்துரைத்த ஸ்டேடின் மாத்திரைகளை ஒருநாளும் தவிர்க்காமல் உட்கொள்ளவும். நெய், சிவப்பு இறைச்சி, வறுத்த உணவுகள் மற்றும் முட்டை மஞ்சள் கருவை தவிர்க்கவும். 6-8 வாரங்களில் லிப்பிட் அளவை மறுபரிசீலனை செய்யவும்."
+            : "High-intensity statin therapy (Atorvastatin/Rosuvastatin) strictly as directed by your cardiologist. Zero tolerance for trans-fats, saturated red meats, and deep-fried snacks. Re-check fasting lipids every 6–8 weeks.",
+          tip: isTa ? "ஸ்டேடின் மாத்திரைகள் தமனிகளில் உள்ள அடைப்புகள் வெடிக்காமல் நிலைப்படுத்துகிறது" : "Statins actively stabilize vulnerable arterial plaques and damp down vascular inflammation"
+        },
+        {
+          id: 3,
+          icon: Scale,
+          title: isTa ? "3. ரத்த சர்க்கரை தினசரி கண்காணிப்பு" : "3. Strict Glycemic Tight Control",
+          target: isTa ? "Fasting 80–110 mg/dL | HbA1c < 6.5–7.0%" : "Fasting 80–110 mg/dL | HbA1c < 6.5–7.0%",
+          frequency: isTa ? "வாரந்தோறும் வீட்டில் குளூக்கோமீட்டர் பரிசோதனை" : "Frequent SMBG / Bi-Weekly Glucose Checks",
+          freqColor: "bg-rose-950/80 text-rose-300 border border-rose-500/30 font-bold",
+          body: isTa
+            ? "வீட்டிலேயே குளூக்கோமீட்டர் மூலம் சர்க்கரையை அடிக்கடி சோதிக்கவும். சர்க்கரை உயர்வு தமனி வீக்கத்தை விரைவுபடுத்தும். சர்க்கரை மாத்திரைகள் அல்லது இன்சுலினை இதய மருந்துகளோடு சரியாக இணைத்து உட்கொள்ளவும்."
+            : "Maintain tight glycemic control. Blood sugar spikes dramatically amplify microvascular calcification and vascular stiffness. Coordinate anti-diabetic and cardiovascular therapies with your specialist.",
+          tip: isTa ? "சர்க்கரையைக் கட்டுப்பாட்டில் வைப்பது இதய தசை செயலிழப்பு (Heart Failure) அபாயத்தை குறைக்கிறது" : "Glycemic stability shields coronary microvessels from advanced glycation end-products (AGEs)"
+        },
+        {
+          id: 4,
+          icon: Footprints,
+          title: isTa ? "4. எச்சரிக்கையான குறைந்த தீவிர நடை" : "4. Conservative Walking Protocol (Safety-First)",
+          target: isTa ? "20–30 நிமிடம் மெதுவான நடை (சமமான தரை)" : "20–30 mins Low-Intensity Supervised Walk",
+          frequency: isTa ? "தினமும் இருவேளை 15 நிமிடம்" : "Daily Short Sessions (15 mins x 2)",
+          freqColor: "bg-rose-950/80 text-rose-300 border border-rose-500/30 font-bold",
+          body: isTa
+            ? "கடுமையான எடைகளை தூக்குவது, விரைந்து ஓடுவது முற்றிலும் தடை செய்யப்பட்டுள்ளது. சமமான தரையில் மட்டுமே நிதானமாக நடக்கவும். மார்பு இறுக்கம், தலைசுற்றல் அல்லது மூச்சுத்திணறல் ஏற்பட்டால் உடனே நடைப்பயிற்சியை நிறுத்தி அமரவும்."
+            : "STRICT ACTIVITY SAFETY: Low-intensity walking on flat ground only. Stop immediately if experiencing chest tightness, dizziness, or unusual breathlessness. CONTRAINDICATION: No heavy lifting, isometric straining, or high-intensity bursts.",
+          tip: isTa ? "எச்சரிக்கை: BP 160/100 mmHg-க்கு மேல் இருந்தால் உடற்பயிற்சி செய்யக் கூடாது" : "Red-Flag Contraindication: Never exercise during acute symptomatic episodes or BP >= 160/100 mmHg",
+          link: "/exercise"
+        },
+        {
+          id: 5,
+          icon: Utensils,
+          title: isTa ? "5. தீவிர குறைந்த சோடியம் உணவு முறை" : "5. Therapeutic Sodium Restriction (< 1,500 mg)",
+          target: isTa ? "கடுமையான சோடியம்: < 1,500 mg/நாள் (< 1/2 டீஸ்பூன் உப்பு)" : "Strict Sodium: < 1,500 mg/day (< 1/2 tsp salt)",
+          frequency: isTa ? "கண்டிப்பான மருத்துவ உணவு முறை" : "Cardiac-Safe Low-Sodium Plate",
+          freqColor: "bg-rose-950/80 text-rose-300 border border-rose-500/30 font-bold",
+          body: isTa
+            ? "உணவில் உப்பை மிகவும் குறைவாக சேர்க்கவும். உணவக குழம்புகள், பாக்கெட் சூப், ஊறுகாய், அப்பளம் ஆகியவற்றை அறவே தவிர்க்கவும். ஆவியில் வேகவைத்த உணவுகள் (இட்லி, கஞ்சி, சுண்டல்) மட்டுமே உண்பது சிறந்தது."
+            : "Zero table salt added. Completely avoid restaurant gravies, canned broths, processed savories, and pickles. Base daily intake on steamed idli, ragi malt, moong dal khichdi, and fresh potassium-rich steamed vegetables.",
+          tip: isTa ? "உப்பை 1,500 மி.கி-க்குள் கட்டுப்படுத்துவது ஒரு BP மாத்திரை தரும் பலனுக்கு சமம்" : "Sodium restriction under 1,500 mg/day yields blood pressure reduction equivalent to monotherapy",
+          link: "/diet"
+        },
+        {
+          id: 6,
+          icon: CalendarCheck,
+          title: isTa ? "6. மாதாந்திர இதய நிபுணர் சந்திப்பு" : "6. Monthly Cardiologist Review & Adherence",
+          target: isTa ? "மாதாந்திர கிளினிக்கல் கண்காணிப்பு & மாத்திரை கட்டுப்பாடு" : "Monthly Specialist Review & 100% Adherence",
+          frequency: isTa ? "4 முதல் 8 வாரங்களுக்கு ஒருமுறை" : "Every 4 to 8 Weeks",
+          freqColor: "bg-rose-950/80 text-rose-300 border border-rose-500/30 font-bold",
+          body: isTa
+            ? "கார்டியாலஜிஸ்ட் பரிந்துரைத்த மாத்திரைகளை (BP, கொலஸ்ட்ரால், ரத்த உறைவு தடுப்பு மருந்துகள்) குறித்த நேரத்தில் எடுக்கவும். உடம்பு நன்றாக இருப்பதாக நினைத்து மாத்திரைகளை நிறுத்தக் கூடாது. அவசர உதவி எண்களை (112/108) குறித்து வைக்கவும்."
+            : "Strictly adhere to your multi-drug cardiac regimen (anti-hypertensive, high-potency statin, antiplatelet / beta-blocker). Never skip or reduce dosages without explicit cardiologist direction. Keep emergency numbers (112 / 108) ready.",
+          tip: isTa ? "அவசர எண்களை (112/108) எப்போதும் தயாராக வைக்கவும்; மாத்திரைகளை தவறாமல் எடுக்கவும்" : "Set automated medication reminders; never allow your prescription supplies to run out",
+          link: "/reminders"
+        }
+      ]
+    }
+  }
+
+  const currentContent = tierContent[activeTier]
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -179,210 +464,216 @@ export const RiskMaintenance = () => {
         </h1>
         <p className="text-xs sm:text-sm text-slate-300 mt-1 leading-relaxed">
           {isTa
-            ? "உயர்ந்த இதய அபாய முடிவுகள் என்பது ஒரு எச்சரிக்கையே அன்றி இறுதி நோய் கண்டறிதல் அல்ல. தொடர் கண்காணிப்பு மற்றும் வாழ்க்கை முறை மாற்றங்களால் உங்கள் அளவீடுகளை சீராக்க முடியும்."
-            : "Practical guidance to regularly monitor, record, and maintain your cardiovascular biomarkers and daily habits over time."}
+            ? "உங்கள் இதய அபாய நிலைக்கு ஏற்ப (குறைந்த, மிதமான அல்லது உயர் அபாயம்) தனிப்பயனாக்கப்பட்ட கண்காணிப்பு வழிகாட்டிகள் மற்றும் பராமரிப்பு இலக்குகள்."
+            : "Personalized cardiovascular maintenance targets, monitoring schedules, and habit protocols adapted dynamically to your risk tier."}
         </p>
       </div>
 
       <MedicalDisclaimer compact={true} />
 
-      {/* Context Banner: High Risk Guidance */}
-      {isHighRisk ? (
-        <div className="glass-card rounded-3xl p-5 border border-rose-500/40 bg-rose-950/20 space-y-2">
-          <div className="flex items-start gap-3">
-            <span className="w-3 h-3 rounded-full bg-rose-500 mt-1 flex-shrink-0 animate-pulse"></span>
-            <div>
-              <h2 className="text-sm font-bold text-rose-200">
-                {isTa ? "உயர் அபாய நிலை மேலாண்மை வழிகாட்டல்:" : "Proactive High-Risk Management Guidance"}
-              </h2>
-              <p className="text-xs text-slate-300 mt-1 leading-relaxed">
-                {isTa
-                  ? "உங்கள் சமீபத்திய கணக்கீட்டில் மதிப்பிடப்பட்ட அபாய சதவீதம் உயர்ந்துள்ளது. இது ஒரே இரவில் ஏற்படும் மாற்றமல்ல; உங்கள் இரத்த அழுத்தம், கொலஸ்ட்ரால், சர்க்கரை மற்றும் உணவை முறைப்படுத்துவதன் மூலம் இதய சுமையை கணிசமாகக் குறைக்க முடியும். மருத்துவ ஆலோசனையுடன் இந்த பராமரிப்பு முறைகளைப் பின்பற்றவும்."
-                  : "An elevated risk estimate highlights modifiable markers where consistent daily maintenance and physician consultation can make a substantial impact. Focus on steady, verifiable improvements across blood pressure, lipids, and dietary sodium."}
-              </p>
-            </div>
-          </div>
-          <div className="flex flex-wrap items-center gap-3 pt-2 text-xs">
-            <Link
-              to="/what-if"
-              className="font-semibold text-teal-300 hover:text-white flex items-center gap-1 bg-slate-900/80 px-3 py-1.5 rounded-xl border border-teal-500/30 transition-colors"
-            >
-              <span>{isTa ? "மாற்றங்களின் பலனை சோதிக்க (What-If) →" : "Simulate Improvements in What-If →"}</span>
-            </Link>
-            <Link
-              to="/diet"
-              className="font-semibold text-emerald-300 hover:text-white flex items-center gap-1 bg-slate-900/80 px-3 py-1.5 rounded-xl border border-emerald-500/30 transition-colors"
-            >
-              <span>{isTa ? "இதய நல உணவு முறை →" : "Heart-Healthy Indian Diet →"}</span>
-            </Link>
-          </div>
-        </div>
-      ) : (
-        <div className="glass-card rounded-3xl p-4 border border-teal-500/30 bg-teal-950/20 flex items-center justify-between gap-3 text-xs text-slate-300">
-          <div className="flex items-center gap-2.5">
-            <Heart className="w-5 h-5 text-teal-400 flex-shrink-0" />
-            <span>
-              {isTa
-                ? "தொடர்ச்சியான சுய கண்காணிப்பு ஆரோக்கியமான அளவீடுகளை நிலைநிறுத்த உதவுகிறது."
-                : "Active preventive monitoring helps keep your biomarkers stable and prevents progressive vascular strain."}
+      {/* Interactive Risk Tier Switcher */}
+      <div className="glass-card rounded-2xl p-3 border border-slate-800 bg-slate-900/90 space-y-2">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-1">
+          <span className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+            <Sparkles className="w-4 h-4 text-teal-400" />
+            <span>{isTa ? "அபாய நிலை அடிப்படையிலான வழிகாட்டல்:" : "Risk Tier Guidance Level:"}</span>
+          </span>
+          {latestPred && (
+            <span className="text-[11px] text-slate-400">
+              {isTa ? "உங்கள் தற்போதைய மதிப்பீடு: " : "Your Evaluated Risk: "}
+              <strong className={
+                userActualTier === "HIGH" ? "text-rose-400" : userActualTier === "MODERATE" ? "text-amber-400" : "text-emerald-400"
+              }>
+                {latestPred.risk_percentage ? `${latestPred.risk_percentage}% ` : ""}({userActualTier} RISK)
+              </strong>
             </span>
-          </div>
-          <Link to="/risk-assessment" className="font-semibold text-teal-300 hover:underline flex-shrink-0">
-            {isTa ? "புதிய மதிப்பீடு →" : "Check Risk Again →"}
-          </Link>
+          )}
         </div>
-      )}
 
-      {/* 6 Key Areas to Regularly Monitor and Maintain */}
+        <div className="grid grid-cols-3 gap-2">
+          {/* Low Risk Tab */}
+          <button
+            type="button"
+            onClick={() => setSelectedTier("LOW")}
+            className={`p-2.5 rounded-xl border text-xs font-bold transition-all flex flex-col items-center gap-1 ${
+              activeTier === "LOW"
+                ? "bg-emerald-950/80 border-emerald-500 text-emerald-200 shadow-md shadow-emerald-950/40"
+                : "bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-300"
+            }`}
+          >
+            <div className="flex items-center gap-1.5">
+              <span className={`w-2 h-2 rounded-full ${activeTier === "LOW" ? "bg-emerald-400" : "bg-emerald-600"}`}></span>
+              <span>{isTa ? "குறைந்த அபாயம்" : "Low Risk (< 20%)"}</span>
+            </div>
+            <span className="text-[10px] font-normal text-slate-400">
+              {userActualTier === "LOW" ? (isTa ? "உங்கள் நிலை" : "Your Current Tier") : (isTa ? "ஆரோக்கிய பராமரிப்பு" : "Wellness Plan")}
+            </span>
+          </button>
+
+          {/* Moderate Risk Tab */}
+          <button
+            type="button"
+            onClick={() => setSelectedTier("MODERATE")}
+            className={`p-2.5 rounded-xl border text-xs font-bold transition-all flex flex-col items-center gap-1 ${
+              activeTier === "MODERATE"
+                ? "bg-amber-950/80 border-amber-500 text-amber-200 shadow-md shadow-amber-950/40"
+                : "bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-300"
+            }`}
+          >
+            <div className="flex items-center gap-1.5">
+              <span className={`w-2 h-2 rounded-full ${activeTier === "MODERATE" ? "bg-amber-400" : "bg-amber-600"}`}></span>
+              <span>{isTa ? "மிதமான அபாயம்" : "Moderate Risk (20–50%)"}</span>
+            </div>
+            <span className="text-[10px] font-normal text-slate-400">
+              {userActualTier === "MODERATE" ? (isTa ? "உங்கள் நிலை" : "Your Current Tier") : (isTa ? "கட்டுப்பாட்டு திட்டம்" : "Targeted Control")}
+            </span>
+          </button>
+
+          {/* High Risk Tab */}
+          <button
+            type="button"
+            onClick={() => setSelectedTier("HIGH")}
+            className={`p-2.5 rounded-xl border text-xs font-bold transition-all flex flex-col items-center gap-1 ${
+              activeTier === "HIGH"
+                ? "bg-rose-950/80 border-rose-500 text-rose-200 shadow-md shadow-rose-950/40"
+                : "bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-300"
+            }`}
+          >
+            <div className="flex items-center gap-1.5">
+              <span className={`w-2 h-2 rounded-full ${activeTier === "HIGH" ? "bg-rose-400 animate-pulse" : "bg-rose-600"}`}></span>
+              <span>{isTa ? "உயர் அபாயம்" : "High Risk (>= 50%)"}</span>
+            </div>
+            <span className="text-[10px] font-normal text-slate-400">
+              {userActualTier === "HIGH" ? (isTa ? "உங்கள் நிலை" : "Your Current Tier") : (isTa ? "தீவிர கண்காணிப்பு" : "Intensive Care")}
+            </span>
+          </button>
+        </div>
+      </div>
+
+      {/* Dynamic Tier Context Banner */}
+      <div className={`glass-card rounded-3xl p-5 border ${currentContent.bannerTheme} space-y-3`}>
+        <div className="flex items-start gap-3">
+          <div className="mt-0.5">
+            {isHigh ? (
+              <AlertOctagon className="w-5 h-5 text-rose-400 animate-pulse flex-shrink-0" />
+            ) : isMod ? (
+              <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0" />
+            ) : (
+              <Heart className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-900/80 border border-slate-700 text-slate-300">
+                {currentContent.tag}
+              </span>
+              {activeTier === userActualTier && (
+                <span className="text-[10px] font-bold text-teal-400 flex items-center gap-1">
+                  <Check className="w-3 h-3" /> {isTa ? "மதிப்பீடு பொருத்தம்" : "Matches Your Assessment"}
+                </span>
+              )}
+            </div>
+            <h2 className="text-base font-bold text-white mt-1">
+              {currentContent.headline}
+            </h2>
+            <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+              {currentContent.description}
+            </p>
+          </div>
+        </div>
+
+        {/* Quick Action Links */}
+        <div className="flex flex-wrap items-center gap-2.5 pt-1 text-xs border-t border-slate-800/80">
+          <Link
+            to="/what-if"
+            className="font-semibold text-teal-300 hover:text-white flex items-center gap-1 bg-slate-900/90 px-3 py-1.5 rounded-xl border border-teal-500/30 transition-colors"
+          >
+            <span>{isTa ? "அளவீட்டு மாற்றங்களை சோதிக்க (What-If) →" : "Simulate Improvements in What-If →"}</span>
+          </Link>
+          <Link
+            to="/diet"
+            className="font-semibold text-emerald-300 hover:text-white flex items-center gap-1 bg-slate-900/90 px-3 py-1.5 rounded-xl border border-emerald-500/30 transition-colors"
+          >
+            <span>{isTa ? "இதய நல உணவு முறை →" : "Heart-Healthy Diet Plan →"}</span>
+          </Link>
+          <Link
+            to="/exercise"
+            className="font-semibold text-blue-300 hover:text-white flex items-center gap-1 bg-slate-900/90 px-3 py-1.5 rounded-xl border border-blue-500/30 transition-colors"
+          >
+            <span>{isTa ? "உடற்பயிற்சி வழிகாட்டல் →" : "Safe Activity Routine →"}</span>
+          </Link>
+          {isHigh && (
+            <Link
+              to="/emergency"
+              className="font-semibold text-rose-300 hover:text-white flex items-center gap-1 bg-rose-950/60 px-3 py-1.5 rounded-xl border border-rose-500/40 transition-colors"
+            >
+              <PhoneCall className="w-3.5 h-3.5 text-rose-400" />
+              <span>{isTa ? "அவசர உதவி (112 / 108)" : "Emergency Triage (112 / 108)"}</span>
+            </Link>
+          )}
+        </div>
+      </div>
+
+      {/* 6 Key Areas to Regularly Monitor and Maintain (Dynamic per Risk Tier) */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-bold text-white flex items-center gap-2">
             <Activity className="w-5 h-5 text-teal-400" />
-            <span>{isTa ? "வழக்கமாக கண்காணிக்க வேண்டிய 6 முக்கிய அம்சங்கள்" : "6 Key Areas to Monitor & Maintain"}</span>
+            <span>
+              {isTa
+                ? `6 முக்கிய பராமரிப்பு அம்சங்கள் (${isHigh ? "உயர் அபாயம்" : isMod ? "மிதமான அபாயம்" : "குறைந்த அபாயம்"})`
+                : `6 Key Areas to Monitor & Maintain (${isHigh ? "High Risk Protocol" : isMod ? "Moderate Risk Protocol" : "Low Risk Protocol"})`}
+            </span>
           </h2>
           <span className="text-[11px] text-slate-400">
-            {isTa ? "பராமரிப்பு வழிகாட்டிகள்" : "Lifestyle Management"}
+            {isTa ? "தனிப்பயனாக்கப்பட்ட இலக்குகள்" : "Personalized Targets"}
           </span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* 1. Blood Pressure Tracking */}
-          <div className="glass-card rounded-2xl p-4 border border-slate-800 bg-slate-900/70 space-y-2.5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
-                <Activity className="w-4 h-4 text-amber-400" />
-                <span>{isTa ? "1. இரத்த அழுத்த கண்காணிப்பு" : "1. Blood Pressure Tracking"}</span>
-              </span>
-              <span className="text-[10px] text-slate-400 bg-slate-800 px-2 py-0.5 rounded font-mono">
-                {isTa ? "இலக்கு: < 130/80 mmHg" : "Target: < 130/80 mmHg"}
-              </span>
-            </div>
-            <p className="text-xs text-slate-300 leading-relaxed">
-              {isTa
-                ? "அமைதியாக 5 நிமிடங்கள் அமர்ந்த பின் அளவீடு எடுக்கவும். புகைப்பிடித்தல் அல்லது காபி அருந்திய உடனேயே எடுக்க வேண்டாம். காலை மற்றும் மாலை இரண்டு வேளைகளிலும் அளவீடு செய்வது துல்லியமான சராசரியைத் தரும்."
-                : "Sit quietly for 5 minutes before recording. Measure both morning and evening. Avoid caffeine, tobacco, or exercise 30 minutes prior. Consistent readings $<130/80\\text{ mmHg}$ reduce mechanical arterial stress."}
-            </p>
-            <div className="text-[11px] text-teal-300 flex items-center gap-1.5 pt-1 border-t border-slate-800">
-              <CheckCircle2 className="w-3.5 h-3.5 text-teal-400" />
-              <span>{isTa ? "உணவில் உப்பை குறைப்பது BP-யை சீராக்கும்" : "Limiting dietary sodium directly lowers systolic resistance"}</span>
-            </div>
-          </div>
+          {currentContent.areas.map((area) => {
+            const AreaIcon = area.icon
+            return (
+              <div
+                key={area.id}
+                className="glass-card rounded-2xl p-4 border border-slate-800 bg-slate-900/80 space-y-2.5 hover:border-slate-700 transition-colors"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <span className={`text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 ${currentContent.iconColor}`}>
+                    <AreaIcon className="w-4 h-4 flex-shrink-0" />
+                    <span>{area.title}</span>
+                  </span>
+                  <span className="text-[10px] text-slate-300 bg-slate-950 px-2 py-0.5 rounded font-mono border border-slate-800 flex-shrink-0">
+                    {area.target}
+                  </span>
+                </div>
 
-          {/* 2. Cholesterol Tracking */}
-          <div className="glass-card rounded-2xl p-4 border border-slate-800 bg-slate-900/70 space-y-2.5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-rose-400 uppercase tracking-wider flex items-center gap-1.5">
-                <Droplet className="w-4 h-4 text-rose-400" />
-                <span>{isTa ? "2. கொலஸ்ட்ரால் பரிசோதனை" : "2. Cholesterol Tracking"}</span>
-              </span>
-              <span className="text-[10px] text-slate-400 bg-slate-800 px-2 py-0.5 rounded font-mono">
-                {isTa ? "இலக்கு: < 200 mg/dL" : "Target: < 200 mg/dL"}
-              </span>
-            </div>
-            <p className="text-xs text-slate-300 leading-relaxed">
-              {isTa
-                ? "மொத்த கொலஸ்ட்ரால் 200 mg/dL-க்கு குறைவாகவும், LDL கொழுப்பை குறைவாகவும் பராமரிக்கவும். 3 முதல் 6 மாதங்களுக்கு ஒருமுறை மருத்துவ ஆய்வகத்தில் லிப்பிட் பரிசோதனை (Lipid Profile) செய்து பார்க்கவும்."
-                : "Target total cholesterol $<200\\text{ mg/dL}$ with low LDL and healthy HDL. Schedule a standard fasting lipid profile every 3–6 months. Insoluble and soluble fibers naturally clear circulating bile acids."}
-            </p>
-            <div className="text-[11px] text-teal-300 flex items-center gap-1.5 pt-1 border-t border-slate-800">
-              <CheckCircle2 className="w-3.5 h-3.5 text-teal-400" />
-              <span>{isTa ? "பாசிப்பருப்பு, ஓட்ஸ் மற்றும் கொண்டைக்கடலை உதவும்" : "Moong dal, oats, and chickpeas bind excess cholesterol"}</span>
-            </div>
-          </div>
+                {/* Monitoring Frequency Badge */}
+                <div className="flex items-center gap-1.5">
+                  <Clock className="w-3 h-3 text-slate-400" />
+                  <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${area.freqColor}`}>
+                    {area.frequency}
+                  </span>
+                </div>
 
-          {/* 3. Blood Glucose Tracking */}
-          <div className="glass-card rounded-2xl p-4 border border-slate-800 bg-slate-900/70 space-y-2.5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-cyan-400 uppercase tracking-wider flex items-center gap-1.5">
-                <Scale className="w-4 h-4 text-cyan-400" />
-                <span>{isTa ? "3. இரத்த சர்க்கரை மேலாண்மை" : "3. Blood Glucose Tracking"}</span>
-              </span>
-              <span className="text-[10px] text-slate-400 bg-slate-800 px-2 py-0.5 rounded font-mono">
-                {isTa ? "இலக்கு: < 100 mg/dL (உணவுக்கு முன்)" : "Target: < 100 mg/dL (Fasting)"}
-              </span>
-            </div>
-            <p className="text-xs text-slate-300 leading-relaxed">
-              {isTa
-                ? "காலை வெறும் வயிற்று சர்க்கரை 100 mg/dL-க்கு கீழ் இருக்க வேண்டும். தீட்டிய வெள்ளை அரிசிக்கு பதிலாக கைக்குத்தல் அரிசி, ராகி மற்றும் கம்பு போன்ற சிறுதானியங்களை பயன்படுத்தவும்."
-                : "Maintain fasting glucose $<100\\text{ mg/dL}$ and monitor HbA1c periodically. Chronic high glucose damages coronary microvasculature. Swap refined white rice for finger millet (Ragi) or brown rice."}
-            </p>
-            <div className="text-[11px] text-teal-300 flex items-center gap-1.5 pt-1 border-t border-slate-800">
-              <CheckCircle2 className="w-3.5 h-3.5 text-teal-400" />
-              <span>{isTa ? "சிறுதானியங்கள் சர்க்கரை உயர்வை தடுக்கும்" : "Millets provide low-GI sustained energy release"}</span>
-            </div>
-          </div>
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  {area.body}
+                </p>
 
-          {/* 4. Physical Activity Monitoring */}
-          <div className="glass-card rounded-2xl p-4 border border-slate-800 bg-slate-900/70 space-y-2.5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
-                <Footprints className="w-4 h-4 text-emerald-400" />
-                <span>{isTa ? "4. வழக்கமான நடை & உடற்பயிற்சி" : "4. Physical Activity Routine"}</span>
-              </span>
-              <span className="text-[10px] text-slate-400 bg-slate-800 px-2 py-0.5 rounded font-mono">
-                {isTa ? "இலக்கு: 150 நிமிடம் / வாரம்" : "Target: 150 mins / week"}
-              </span>
-            </div>
-            <p className="text-xs text-slate-300 leading-relaxed">
-              {isTa
-                ? "வாரத்திற்கு 150 நிமிடங்கள் மிதமான நடைப்பயிற்சி (தினமும் 20-30 நிமிடம்) மேற்கொள்ளவும். இரத்த அழுத்தம் அதிகமாக இருக்கும் போது கடினமான எடையை தூக்குவதைத் தவிர்க்கவும்."
-                : "Aim for 150 minutes of weekly moderate aerobic walking (20–30 mins/day at conversational pace). If blood pressure is severely elevated, avoid heavy lifting or straining and consult your physician first."}
-            </p>
-            <div className="flex items-center justify-between pt-1 border-t border-slate-800 text-[11px]">
-              <span className="text-slate-400">{isTa ? "அனுலோம் விலோம், சாந்த ஆசனங்கள்" : "Anulom Vilom & gentle pacing"}</span>
-              <Link to="/exercise" className="text-teal-300 font-semibold hover:underline">
-                {isTa ? "உடற்பயிற்சி வழிகாட்டல் →" : "Exercise Plan →"}
-              </Link>
-            </div>
-          </div>
-
-          {/* 5. Healthy Diet Habits */}
-          <div className="glass-card rounded-2xl p-4 border border-slate-800 bg-slate-900/70 space-y-2.5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-1.5">
-                <Utensils className="w-4 h-4 text-indigo-400" />
-                <span>{isTa ? "5. ஆரோக்கியமான உணவுப் பழக்கங்கள்" : "5. Healthy Diet Habits"}</span>
-              </span>
-              <span className="text-[10px] text-slate-400 bg-slate-800 px-2 py-0.5 rounded font-mono">
-                {isTa ? "சோடியம்: < 2,000 mg/நாள்" : "Sodium: < 2,000 mg/day"}
-              </span>
-            </div>
-            <p className="text-xs text-slate-300 leading-relaxed">
-              {isTa
-                ? "ஊறுகாய், அப்பளம் மற்றும் வறுத்த உணவுகளை தவிர்க்கவும். உணவில் உப்பை அரை ஸ்பூன் அளவிற்குள் கட்டுப்படுத்தவும். மதிய உணவில் தயிர் மற்றும் காய்கறி சாலட் சேர்த்துக் கொள்ளவும்."
-                : "Limit sodium intake below 2,000 mg/day (DASH principle). Minimize papads, pickles (achaar), and bakery fats. Rotate cold-pressed plant oils and incorporate roasted makhana instead of fried snacks."}
-            </p>
-            <div className="flex items-center justify-between pt-1 border-t border-slate-800 text-[11px]">
-              <span className="text-slate-400">{isTa ? "மோர், பூண்டு, காய்கறி கூட்டுகள்" : "Curd, garlic, vegetable sabzi"}</span>
-              <Link to="/diet" className="text-teal-300 font-semibold hover:underline">
-                {isTa ? "உணவுத் திட்டம் காண்க →" : "View Diet Plan →"}
-              </Link>
-            </div>
-          </div>
-
-          {/* 6. Regular Health Check-ups */}
-          <div className="glass-card rounded-2xl p-4 border border-slate-800 bg-slate-900/70 space-y-2.5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-teal-400 uppercase tracking-wider flex items-center gap-1.5">
-                <CalendarCheck className="w-4 h-4 text-teal-400" />
-                <span>{isTa ? "6. வழக்கமான மருத்துவ பரிசோதனை" : "6. Regular Health Check-ups"}</span>
-              </span>
-              <span className="text-[10px] text-slate-400 bg-slate-800 px-2 py-0.5 rounded font-mono">
-                {isTa ? "தவறாமல் மாத்திரை உட்கொள்ளுதல்" : "Medication Adherence"}
-              </span>
-            </div>
-            <p className="text-xs text-slate-300 leading-relaxed">
-              {isTa
-                ? "மருத்துவர் பரிந்துரைத்த மாத்திரைகளை (BP, கொலஸ்ட்ரால்) குறித்த நேரத்தில் உட்கொள்ளவும். சுயமாக மாத்திரைகளை நிறுத்தவோ குறைக்கவோ கூடாது. உங்கள் வீட்டில் உள்ள BP கருவியின் துல்லியத்தை சரிபார்க்கவும்."
-                : "Take all doctor-prescribed medications as directed without self-adjusting doses. Schedule regular clinical check-ups with your cardiologist or primary care physician to verify home readings."}
-            </p>
-            <div className="flex items-center justify-between pt-1 border-t border-slate-800 text-[11px]">
-              <span className="text-slate-400">{isTa ? "நினைவூட்டல் அட்டவணை" : "Routine Reminders"}</span>
-              <Link to="/reminders" className="text-teal-300 font-semibold hover:underline">
-                {isTa ? "நினைவூட்டல்கள் →" : "Set Reminders →"}
-              </Link>
-            </div>
-          </div>
+                <div className="flex items-center justify-between pt-2 border-t border-slate-800 text-[11px]">
+                  <div className="text-teal-300 flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-teal-400 flex-shrink-0" />
+                    <span className="leading-tight">{area.tip}</span>
+                  </div>
+                  {area.link && (
+                    <Link to={area.link} className="text-teal-400 hover:underline flex-shrink-0 font-semibold ml-2">
+                      →
+                    </Link>
+                  )}
+                </div>
+              </div>
+            )
+          })}
         </div>
       </div>
 
@@ -427,7 +718,9 @@ export const RiskMaintenance = () => {
                 onChange={(e) => handleInputChange("systolic_bp", e.target.value)}
                 className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 focus:border-teal-500 text-white text-xs"
               />
-              <span className="text-[10px] text-slate-400 mt-0.5 block">{isTa ? "இயல்பானது: < 120" : "Desirable: < 120"}</span>
+              <span className="text-[10px] text-slate-400 mt-0.5 block">
+                {isHigh ? (isTa ? "இலக்கு: < 120 (கண்டிப்பானது)" : "Strict Target: < 120") : (isTa ? "இயல்பானது: < 120" : "Desirable: < 120")}
+              </span>
             </div>
 
             {/* Diastolic BP */}
@@ -443,7 +736,9 @@ export const RiskMaintenance = () => {
                 onChange={(e) => handleInputChange("diastolic_bp", e.target.value)}
                 className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 focus:border-teal-500 text-white text-xs"
               />
-              <span className="text-[10px] text-slate-400 mt-0.5 block">{isTa ? "இயல்பானது: < 80" : "Desirable: < 80"}</span>
+              <span className="text-[10px] text-slate-400 mt-0.5 block">
+                {isHigh ? (isTa ? "இலக்கு: < 75 (கண்டிப்பானது)" : "Strict Target: < 75") : (isTa ? "இயல்பானது: < 80" : "Desirable: < 80")}
+              </span>
             </div>
 
             {/* Cholesterol */}
@@ -459,7 +754,9 @@ export const RiskMaintenance = () => {
                 onChange={(e) => handleInputChange("cholesterol", e.target.value)}
                 className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 focus:border-teal-500 text-white text-xs"
               />
-              <span className="text-[10px] text-slate-400 mt-0.5 block">{isTa ? "இயல்பானது: < 200" : "Desirable: < 200"}</span>
+              <span className="text-[10px] text-slate-400 mt-0.5 block">
+                {isHigh ? (isTa ? "இலக்கு: < 150 (தீவிர கட்டுப்பாடு)" : "Intensive Target: < 150") : (isTa ? "இயல்பானது: < 180" : "Desirable: < 180")}
+              </span>
             </div>
 
             {/* Blood Glucose */}
@@ -475,7 +772,9 @@ export const RiskMaintenance = () => {
                 onChange={(e) => handleInputChange("blood_glucose", e.target.value)}
                 className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 focus:border-teal-500 text-white text-xs"
               />
-              <span className="text-[10px] text-slate-400 mt-0.5 block">{isTa ? "இயல்பானது: 70 - 99" : "Normal Fasting: 70–99"}</span>
+              <span className="text-[10px] text-slate-400 mt-0.5 block">
+                {isTa ? "இயல்பானது: 70 – 99 mg/dL" : "Desirable: 70–99 mg/dL"}
+              </span>
             </div>
 
             {/* Weight */}
@@ -492,7 +791,9 @@ export const RiskMaintenance = () => {
                 onChange={(e) => handleInputChange("weight_kg", e.target.value)}
                 className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 focus:border-teal-500 text-white text-xs"
               />
-              <span className="text-[10px] text-slate-400 mt-0.5 block">{isTa ? "ஆசிய BMI: 18.5 - 22.9" : "Asian BMI range: 18.5–22.9"}</span>
+              <span className="text-[10px] text-slate-400 mt-0.5 block">
+                {isTa ? "ஆசிய BMI: 18.5 – 22.9" : "Asian BMI: 18.5–22.9 kg/m²"}
+              </span>
             </div>
 
             {/* Resting Heart Rate */}
@@ -508,7 +809,9 @@ export const RiskMaintenance = () => {
                 onChange={(e) => handleInputChange("resting_hr", e.target.value)}
                 className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 focus:border-teal-500 text-white text-xs"
               />
-              <span className="text-[10px] text-slate-400 mt-0.5 block">{isTa ? "இயல்பானது: 60 - 80" : "Normal Resting: 60–80"}</span>
+              <span className="text-[10px] text-slate-400 mt-0.5 block">
+                {isTa ? "இயல்பானது: 60 – 80 BPM" : "Desirable: 60–80 BPM"}
+              </span>
             </div>
           </div>
 

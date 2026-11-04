@@ -28,6 +28,7 @@ import { About } from "./pages/About"
 import { RiskMaintenance } from "./pages/RiskMaintenance"
 import { SymptomChecker } from "./pages/SymptomChecker"
 import { SymptomHistory } from "./pages/SymptomHistory"
+import { TrustedContactsPage } from "./pages/TrustedContactsPage"
 
 export function App() {
   return (
@@ -66,6 +67,7 @@ export function App() {
               <Route path="/progress" element={<ProgressMonitoring />} />
               <Route path="/symptom-checker" element={<SymptomChecker />} />
               <Route path="/symptom-history" element={<SymptomHistory />} />
+              <Route path="/trusted-contacts" element={<TrustedContactsPage />} />
               <Route path="/emergency" element={<EmergencyModule />} />
               <Route path="/ecg" element={<EcgMonitor />} />
               <Route path="/model-performance" element={<ModelPerformance />} />

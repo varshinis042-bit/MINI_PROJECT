@@ -30,6 +30,7 @@ import api from "../services/api"
 import { useLanguage } from "../context/LanguageContext"
 import { useAuth } from "../context/AuthContext"
 import { MedicalDisclaimer } from "../components/MedicalDisclaimer"
+import { EmergencyLocationShareModal } from "../components/EmergencyLocationShareModal"
 
 export const SymptomChecker = () => {
   const { lang, t } = useLanguage()
@@ -75,6 +76,7 @@ export const SymptomChecker = () => {
   const [locationShared, setLocationShared] = useState(false)
   const [trustedContacts, setTrustedContacts] = useState([])
   const [showContactModal, setShowContactModal] = useState(false)
+  const [showEmergencyShareModal, setShowEmergencyShareModal] = useState(false)
   const [newContact, setNewContact] = useState({ name: "", relationship: "Family", phone: "" })
 
   // Triage Evaluation Result
@@ -1027,6 +1029,15 @@ export const SymptomChecker = () => {
                 <div className="flex flex-wrap items-center gap-2">
                   <button
                     type="button"
+                    onClick={() => setShowEmergencyShareModal(true)}
+                    className="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-extrabold text-xs flex items-center gap-2 shadow-lg shadow-rose-950/70 transition-transform hover:scale-105"
+                  >
+                    <Share2 className="w-4 h-4" />
+                    <span>{lang === "ta" ? "அவசர விவரங்களைப் பகிர்க" : "Share Emergency Details"}</span>
+                  </button>
+
+                  <button
+                    type="button"
                     onClick={handleRequestLocation}
                     disabled={locationLoading || locationShared}
                     className={`px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all ${
@@ -1053,20 +1064,6 @@ export const SymptomChecker = () => {
                     <Copy className="w-4 h-4 text-teal-400" />
                     <span>{copySuccess ? (lang === "ta" ? "நகலெடுக்கப்பட்டது!" : "Copied!") : (lang === "ta" ? "அவசர குறிப்பை நகலெடு" : "Copy Emergency Note")}</span>
                   </button>
-
-                  <a
-                    href={`https://wa.me/?text=${encodeURIComponent(
-                      `${triageResult.emergency_summary_text}${
-                        locationCoords ? `\n📍 Live GPS Location: https://maps.google.com/?q=${locationCoords.latitude},${locationCoords.longitude}` : ""
-                      }`
-                    )}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5"
-                  >
-                    <span>{lang === "ta" ? "வாட்ஸ்அப் வழி பகிர்க" : "Share via WhatsApp"}</span>
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </a>
 
                   <button
                     type="button"
@@ -1121,6 +1118,14 @@ export const SymptomChecker = () => {
               </div>
 
               <div className="flex flex-wrap items-center gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowEmergencyShareModal(true)}
+                  className="px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-slate-950 text-xs font-black flex items-center gap-2 shadow-lg shadow-amber-950/60 transition-transform hover:scale-105"
+                >
+                  <Share2 className="w-4 h-4" />
+                  <span>{lang === "ta" ? "அவசர விவரங்களைப் பகிர்க" : "Share Clinical Summary & GPS"}</span>
+                </button>
                 <button
                   type="button"
                   onClick={handleCopySummary}
@@ -1352,6 +1357,20 @@ export const SymptomChecker = () => {
           </div>
         </div>
       )}
+
+      {/* Emergency Details & Location Share Modal */}
+      <EmergencyLocationShareModal
+        isOpen={showEmergencyShareModal}
+        onClose={() => setShowEmergencyShareModal(false)}
+        reportId={triageResult?.report_id}
+        urgencyTier={triageResult?.urgency_tier}
+        urgencyTitle={lang === "ta" ? triageResult?.urgency_title_ta : triageResult?.urgency_title}
+        symptomsSummary={triageResult?.reported_symptoms_summary || []}
+        onsetDisplay={triageResult?.onset_time_display}
+        durationDisplay={triageResult?.duration_display}
+        severityDisplay={triageResult?.severity_display}
+        defaultSummaryText={triageResult?.emergency_summary_text}
+      />
 
       {/* Safety Disclaimer */}
       <MedicalDisclaimer compact={true} />
